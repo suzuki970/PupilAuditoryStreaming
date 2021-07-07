@@ -15,13 +15,8 @@ def split_list(l, n):
     for idx in np.arange(len(windowL)-1):
         yield l[windowL[idx]:windowL[idx+1]]
    
-# folderName = glob.glob("./results/*")
-folderName = glob.glob("/Users/yutasuzuki/Desktop/Python/Pxx_auditoryIllusion/e2_baseLinePupil_Switch/analysis/pre_pro/results/*")
+folderName = glob.glob("./results/*")
 folderName.sort()
-# saveFileLocs = '/Users/yuta/Desktop/e2_baseLinePupil_Switch'
-# saveFileLocs = '/Users/yutasuzuki/Desktop/Python/Pxx_auditoryIllusion/e2_baseLinePupil_Switch/analysis/pre_pro/results/'
-# saveFileLocs = 'C:/Users/NTT/Desktop/e2_baseLinePupil_Switch/'
-# saveFileLocs = '/Users/yuta/Desktop/box/e2_baseLinePupil_Switch/'
 
 
 datHash={"PDR":[],
@@ -48,19 +43,8 @@ cfg={'THRES_DIFF':10,
      'normFlag':True,
      's_trg':[]
      }
-# mmFlag = False
-# normFlag = True
-numOfSub = 0
-# folderName = folderName[-1:]
 
-# if os.path.exists("./data_original.json"):
-#     f = open(os.path.join(str( './data_original.json')))
-#     datHash = json.load(f)
-#     f.close()
-#     folderName = folderName[int(max(datHash['sub'])):]
-#     numOfSub = int(max(datHash['sub']))
-# else:
-#     numOfSub = 0
+numOfSub = 0
 
 for iSub,subName in enumerate(folderName):
     fileName = glob.glob(os.path.join(subName+'/*.asc'))
@@ -193,11 +177,5 @@ for mm in mmName:
     if not isinstance(datHash[mm],list):
         datHash[mm] = datHash[mm].tolist()
 
-# if mmFlag:
-# with open(os.path.join(saveFileLocs + "/data_original20210405.json"),"w") as f:
-#         json.dump(datHash,f)
 with open(os.path.join("./data/data_original20210630.json"),"w") as f:
         json.dump(datHash,f)
-# elif normFlag:
-#     with open(os.path.join(saveFileLocs + "/data_original_normalized.json"),"w") as f:
-#             json.dump(datHash,f)
