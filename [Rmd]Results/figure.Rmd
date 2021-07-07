@@ -1,0 +1,629 @@
+---
+title: "Figures"
+output: html_document
+---
+
+## Article information
+
+Temporal dynamics of auditory bistable perception correlated with a fluctuation of baseline pupil size
+
+Yuta Suzuki, Hsin-I Liao, Shigeto Furukawa
+
+NTT Communication Science Laboratories, NTT Corporation, Atsugi 243-0198, Japan
+
+*Corresponding author: Yuta Suzuki
+NTT Communication Science Laboratories, NTT Corporation, Atsugi 243-0198, Japan
+Tel: +81-046-240-3525, 
+E-mail: yuuta.suzuki.fc@hco.ntt.co.jp
+
+
+```{r child="readFunc.Rmd"}
+```
+
+## figure 2
+```{r, message=FALSE, echo=FALSE,warning=FALSE,fig.width = 10, fig.height = 10}
+
+countFigNum = 1
+
+#### Figure 1A ####
+load("./data/Exp1/figure2.rda")
+# load("./data/Exp1/dataset_e2_20210420.rda")
+# load("./data/Exp1/betaWtFunc.rda")
+# data_tertile = data.frame(
+#   sub = data$sub,
+#   data_y = data$numOfSwitch_sorted,
+#   Tertile = data$tertile
+# )
+# data=fromJSON(file="./data/Exp1/corr.json")
+# melted_data <- melt(data)
+# p_values=fromJSON(file="./data/Exp1/p_values.json")
+# melted_p_values <- melt(p_values)
+
+numOfsub = length(unique(data_res_tonic$sub))
+
+data_res_tonic$sub = subName[data_res_tonic$sub]
+data_res_tonic$data_y = data_res_tonic$Size
+data_res_tonic$Size = NULL
+
+config = list(alpha = 0.4,
+              stride = 0.1,
+              label_x = "# of switch",
+              label_y = "Baseline Pupil size  \n [z-scored]",
+              title = "Tertile",
+              grCol = c("#F8766D","#00BA38","#619CFF")
+)
+anovakun(data_res_tonic,"sA",long=T, peta=T)
+# sigPair = makeSigPair(forDrawingPost)
+
+p = dispLineGraph(data_res_tonic,config,c("numOfSwitch"))
+
+config$ylim = round(seq(-0.3,0.4,0.1),2)
+config$ylim_stride = 0.1
+config$xlim = round(seq(1,3,1),2)
+config$xlim_stride = 0.5
+
+p = setEmptyStyle(p,config)
+
+# p <- drawSignificance(p,sigPair,0.4,0.05,nsFlag)
+
+eval(parse(text=paste("p", countFigNum ,"=p", sep="")))
+countFigNum = countFigNum+1
+
+# #### Figure 1B #### 
+data = fromJSON(file="./data/Exp1/data_tertile20210610.json")
+data_tertile = data.frame(
+  sub = data$sub,
+  data_y = data$numOfSwitch_sorted,
+  Tertile = data$tertile
+)
+
+data_tertile = aggregate( . ~ sub*Tertile, data = data_tertile, FUN = "mean")
+
+data_tertile$sub = subName[data_tertile$sub]
+
+config = list(
+  alpha = 0.4,
+  stride = 0.1,
+  label_x = "Pupil response bin",
+  label_y = "Averaged # of switch",
+  title = "Tertile",
+  grCol = rep("#BEBEBE",5)
+)
+
+x = as.numeric(data_tertile$Tertile)
+y = data_tertile$data_y
+f <- y ~  a*x + b
+model1 <- nls(f, start = c(a = 0, b = 0))
+
+f <- y ~  a*x^2 + b*x + c
+model2 <- nls(f, start = c(a = 0, b = 0, c=0))
+
+if (AIC(model1) > AIC(model2)){
+  model = model2
+}else{
+  model = model1
+}
+
+df <- data.frame(x = seq(1, 5, length = 10))
+data_curve = data.frame(
+  x = df$x,
+  yy = predict(model, df)
+)
+
+anovaData = data_tertile
+anovaData$Size_sorted = NULL
+# anovakun(anovaData,"sA",long=T, peta=T)
+# sigPair = makeSigPair(forDrawingPost)
+p <- dispLineGraph(data_tertile,config,c("Tertile"))+
+  geom_line(data = data_curve,aes(x=x,y=yy),color='gray')+
+  ggtitle("Normalized Baseline pupil size")+
+  theme(
+    axis.text.y.right = element_text(color = "#F8766D"),
+    axis.line.y.right = element_line(color = "#F8766D"),
+    axis.ticks.y.right = element_line(color = "#F8766D"),
+    axis.title.y.right = element_text(color = "#F8766D")
+  )
+
+config$ylim = round(seq(0.7,1.3,0.1),2)
+config$ylim_stride = 0.05
+config$xlim = round(seq(1,5,1),2)
+config$xlim_stride = 0.5
+
+p = setEmptyStyle(p,config)
+
+# # p <- drawSignificance(p,sigPair,1.25,0.03,nsFlag)
+# # p = setBarFigureStyle(p)
+
+eval(parse(text=paste("p", countFigNum ,"=p", sep="")))
+countFigNum = countFigNum+1
+
+# #### Figure 1C(heatmap) #### 
+# # data=fromJSON(file="./data/Exp1/corr.json")
+# # melted_data <- melt(data)
+# # p_values=fromJSON(file="./data/Exp1/p_values.json")
+# # melted_p_values <- melt(p_values)
+# 
+# melted_data$p.value = melted_p_values$value
+# 
+# melted_data$value = round(melted_data$value,3)
+# 
+# melted_data$sig = melted_data$value
+# melted_data[melted_data$sig == 0,]$sig=''
+# melted_data[melted_data$p.value < 0.05,]$sig = paste(melted_data[melted_data$p.value < 0.05,]$value,'\n*',sep = "")
+# melted_data[melted_data$p.value < 0.01,]$sig = paste(melted_data[melted_data$p.value < 0.01,]$value,'\n**',sep = "")
+# melted_data[melted_data$p.value < 0.001,]$sig = paste(melted_data[melted_data$p.value < 0.001,]$value,'\n***',sep = "")
+# 
+# mmName = unique(melted_data$L1)
+# melted_data$L1 <- factor(melted_data$L1,levels = mmName)
+# melted_data$L2 <- factor(melted_data$L2,levels = rev(mmName))
+# 
+# melted_data = melted_data[melted_data$value != 0,]
+# p = ggplot(data = melted_data, aes(L2, L1, fill = value))+
+#   geom_tile(color = "white")+
+#   scale_fill_gradient2(low = "#3C50BA", high = "#A6232D", mid = "white",
+#                        midpoint = 0, limit = c(-1,1), space = "Lab",
+#                        name="Pearson\nCorrelation") +
+#   theme_minimal()+
+#   theme(axis.text.x = element_text(angle = 45, vjust = 1,
+#                                    size = 12, hjust = 1))+
+#   theme(axis.text.y = element_text(angle = 45, vjust = 1,
+#                                    size = 12, hjust = 1))+
+#   coord_fixed()+
+#   xlab('')+ylab('')+
+#   geom_text(aes(label = sig), color = "black", size = 7,family='Times')+
+#   scale_x_discrete(labels = c('numOfSwitch'='# of switch',
+#                               'Baseline'='Baseline pupil size',
+#                               'numOfBlink'='# of blinks',
+#                               'Transient'='Transient pupil change',
+#                               'ampOfmSaccade'='Micro-saccade amp.',
+#                               'numOfmSaccade'='# of micro-saccade'))+
+#   scale_y_discrete(labels = c('numOfSwitch'='# of switch',
+#                               'Baseline'='Baseline pupil size',
+#                               'numOfBlink'='# of blinks',
+#                               'Transient'='Transient pupil change',
+#                               'ampOfmSaccade'='Micro-saccade amp.',
+#                               'numOfmSaccade'='# of micro-saccade'))
+# size_font=20
+# p<- p +theme(
+#   legend.position = c(1,1),
+#   legend.justification = c(1,1),
+#   panel.grid = element_blank(),
+#   axis.line = element_line(colour="black"),
+#   axis.title.x = element_text(size=size_font),
+#   axis.title.y = element_text(size=size_font),
+#   axis.text.x = element_text(colour="black"),
+#   axis.text.y = element_text(colour="black"),
+#   axis.ticks = element_line(colour = "black",size = 0.5),
+#   text = element_text(size = size_font,family = "Times"),
+#   legend.title = element_text(size=(size_font/2)),
+#   legend.text = element_text(size=(size_font/2)),
+#   plot.title = element_text(size = size_font)
+# )
+# 
+# eval(parse(text=paste("p", countFigNum ,"=p", sep="")))
+# countFigNum = countFigNum+1
+
+#### plot #### 
+# p = combineGraphs(seq(1,countFigNum-1),'p',NULL)
+# # plot(p)
+# width_fig=10
+# height_fig=10
+# CairoFonts(regular = "Times","Times")
+# CairoPDF(file="./figure/fig2",
+#          width=width_fig, height=height_fig)
+# print(p)
+# dev.off()
+
+# width_fig=4
+# height_fig=4
+# CairoFonts(regular = "Times","Times")
+# CairoPDF(file="./figure/Figure2A",
+#          width=width_fig, height=height_fig)
+# print(p1)
+# dev.off()
+# 
+# width_fig=5
+# height_fig=5
+# CairoFonts(regular = "Times","Times")
+# CairoPDF(file="./figure/Figure2B",
+#          width=width_fig, height=height_fig)
+# print(p2)
+# dev.off()
+# 
+# width_fig=10
+# height_fig=10
+# CairoFonts(regular = "Times","Times")
+# CairoPDF(file="./figure/Figure2C",
+#          width=width_fig, height=height_fig)
+# print(p3)
+# dev.off()
+
+```
+```{r, message=FALSE, echo=FALSE, warning=FALSE,fig.width = 10, fig.height = 5}
+# p = combineGraphs(seq(1,countFigNum-1),'p',NULL)
+# plot(p)
+width_fig=5
+height_fig=5
+CairoFonts(regular = "Times","Times")
+CairoPDF(file="./figure/Fig2A",
+         width=width_fig, height=height_fig)
+print(p1)
+dev.off()
+width_fig=5
+height_fig=5
+CairoFonts(regular = "Times","Times")
+CairoPDF(file="./figure/Fig2B",
+         width=width_fig, height=height_fig)
+print(p2)
+dev.off()
+```
+
+
+## figure 3
+```{r, message=FALSE, echo=FALSE, warning=FALSE,fig.width = 10, fig.height = 5}
+
+countFigNum=1
+go1 = c("unswitch","switch")
+
+FONT_SIZE = 18
+
+#### Figure4A(response) ####
+load("./data/Exp2/figure3.rda")
+data_res$Responses = go1[data_res$Responses+1]
+data_res$Responses = factor(data_res$Responses,levels = go1)
+
+data_res = data_res[,c(1,2,4,3)]
+config = list(
+  # lim_x = c(sTime,eTime),
+  #             lim_y = c(-0.05, 0.05),
+  alpha = 0.4,
+  stride = 0.1,
+  label_x = "",
+  label_y = "Pupil size[z-score]",
+  title = "Tertile"
+  # grCol = rep("#F8766D",5)
+)
+
+data_res = data_res[data_res$type == 'size',]
+data_res$type = NULL
+
+data_res$sub = subName[data_res$sub]
+p <- dispLineGraph(data_res,config,c("Responses"))
+
+config$ylim = round(seq(-0.3,0.1,0.1),2)
+config$ylim_stride = 0.05
+config$xlim = round(seq(1,2,1),2)
+config$xlim_stride = 0.5
+
+p = setEmptyStyle(p,config)
+# p = p +
+#   scale_y_continuous(breaks=round(seq(-0.2,0.2,0.1),2))+
+#   coord_cartesian(xlim=c(0.5,2.5),ylim=c(-0.25,0.25),expand=FALSE)+
+#   annotate(x=1, xend=2, y=-0.25, yend=-0.25, colour="black", lwd=0.5, geom="segment")+
+#   annotate(x=0.5, xend=0.5, y=-0.2, yend=0.2, colour="black", lwd=0.5, geom="segment")
+
+p <- p + theme(
+  legend.position = 'none'
+)
+eval(parse(text=paste("p", countFigNum ,"=p", sep="")))
+countFigNum = countFigNum+1
+
+# #### Figure4B(Tertile) #####
+# nsFlag = FALSE
+
+data_tertile=fromJSON(file="./data/Exp2/data_tertile20210610.json")
+data_tertile = data.frame(
+  sub = data_tertile$sub,
+  Tertile = data_tertile$tertile,
+  responses_sorted = data_tertile$responses_sorted,
+  data_y = data_tertile$responses_sorted
+)
+data_tertile = aggregate( . ~ sub*Tertile, data = data_tertile, FUN = "mean")
+
+data_tertile$sub = subName[data_tertile$sub]
+
+config = list(
+  # lim_x = c(sTime,eTime),
+  #             lim_y = c(-0.05, 0.05),
+  alpha = 0.4,
+  stride = 0.1,
+  label_x = "Pupil response bin",
+  label_y = "Averaged # of switch",
+  title = "Tertile"
+  # grCol = rep("#F8766D",5)
+)
+x = as.numeric(data_tertile$Tertile)
+y = data_tertile$responses_sorted
+f <- y ~  a*x + b
+model1 <- nls(f, start = c(a = 0, b = 0))
+
+f <- y ~  a*x^2 + b*x + c
+model2 <- nls(f, start = c(a = 0, b = 0, c=0))
+
+if (AIC(model1) > AIC(model2)){
+  model = model2
+}else{
+  model = model1
+}
+
+df <- data.frame(x = seq(1, 5, length = 10))
+data_curve = data.frame(
+  x = df$x,
+  yy = predict(model, df)
+)
+
+data_tertile$Size_sorted = NULL
+anovaData = data_tertile
+# anovakun(anovaData,"sA",long=T, peta=T)
+# sigPair = makeSigPair(forDrawingPost)
+data_tertile$data_y = data_tertile$responses_sorted
+data_tertile$responses_sorted = NULL
+
+p <- dispLineGraph(data_tertile,config,c("Tertile"))+
+  geom_line(data = data_curve,aes(x=x,y=yy),color='gray')
+# ggtitle("Normalized Baseline pupil size")+
+#  theme(
+#   axis.text.y.right = element_text(color = "#F8766D"),
+#   axis.line.y.right = element_line(color = "#F8766D"),
+#   axis.ticks.y.right = element_line(color = "#F8766D"),
+#   axis.title.y.right = element_text(color = "#F8766D")
+# )
+config$ylim = round(seq(-0.15,0.15,0.05),4)
+config$ylim_stride = 0.02
+config$xlim = round(seq(1,5,1),2)
+config$xlim_stride = 0.5
+
+p = setEmptyStyle(p,config)
+
+# # p <- drawSignificance(p,sigPair,1.25,0.03,nsFlag)
+eval(parse(text=paste("p", countFigNum ,"=p", sep="")))
+countFigNum = countFigNum+1
+```
+
+```{r, message=FALSE, echo=FALSE, warning=FALSE,fig.width = 10, fig.height = 5}
+p = combineGraphs(seq(1,countFigNum-1),'p',NULL)
+plot(p)
+
+width_fig=5
+height_fig=5
+CairoFonts(regular = "Times","Times")
+CairoPDF(file="./figure/Fig3A",
+         width=width_fig, height=height_fig)
+print(p1)
+dev.off()
+width_fig=5
+height_fig=5
+CairoFonts(regular = "Times","Times")
+CairoPDF(file="./figure/Fig3B",
+         width=width_fig, height=height_fig)
+print(p2)
+dev.off()
+```
+
+
+## figure 4
+```{r, message=FALSE, echo=FALSE, warning=FALSE,fig.width = 10, fig.height = 5}
+
+g2 = c('unswitch','switch')
+countFigNum = 1
+#### data loading ------------------------------------------------------------
+# data=fromJSON(file="./data/Exp1/minmaxEvents.json")
+data=fromJSON(file="../[Python]PreProcessing/Exp1/data/PDPCevents20210609.json")
+
+dat <- list(matrix(unlist(data$constriction),nrow=length(data$constriction),byrow=T),
+            matrix(unlist(data$dilation),nrow=length(data$dilation),byrow=T))
+
+indices = NULL
+events = NULL
+sub = NULL
+numOfSwitch = NULL
+numOfTrial = NULL
+
+for(i in 1:length(data$event)){
+  indices = rbind(indices, matrix(data[["indices"]][[i]])-4000 )
+  events = rbind(events, matrix(data[["event"]][[i]]))
+  sub = rbind(sub,matrix(rep(data$sub[i],length(data[["indices"]][[i]]))))
+  numOfSwitch = rbind(numOfSwitch,matrix(rep(data$numOfSwitch[i],length(data[["indices"]][[i]]))))
+  # numOfTrial = rbind(numOfTrial,matrix(rep(i,length(data[["indices"]][[i]]))))
+  numOfTrial = rbind(numOfTrial,matrix(rep(data$numOfTrial[i],length(data[["indices"]][[i]]))))
+}
+
+# data$numOfTrial[i]
+g1 = c('constriction','dilation')
+g2 = c('0','1','2+')
+# g2 = c('0','1')
+g3 = c('unswitch','switch','switch')
+
+ind_data_e1_raster = data.frame(
+  sub = sub,
+  numOfSwitch = numOfSwitch,
+  indices = indices,
+  events = g1[events+1],
+  numOfTrial = numOfTrial,
+  exp = 'Exp1'
+)
+ind_data_e1_raster[ind_data_e1_raster$numOfSwitch > length(g2)-2,]$numOfSwitch = length(g2)-1
+ind_data_e1_raster$numOfSwitch = g2[ind_data_e1_raster$numOfSwitch+1]
+
+ind_data_e1 = data.frame(
+  sub = rep(data$sub,2),
+  numOfSwitch = rep(data$numOfSwitch,2),
+  data_y = c(data$dilation_time,data$constriction_time),
+  events = rep(c('dilation','constriction'),times=c(length(data$sub),length(data$sub))),
+  exp = 'Exp1'
+)
+
+ind_data_e1[ind_data_e1$numOfSwitch > length(g2)-2,]$numOfSwitch = length(g2)-1
+numOfSub_e1 = length(unique(ind_data_e1$sub))
+
+# data=fromJSON(file="./data/Exp2/minmaxEvents.json")
+data=fromJSON(file="../[Python]PreProcessing/Exp2/data/PDPCevents20210609.json")
+
+dat <- list(matrix(unlist(data$constriction),nrow=length(data$constriction),byrow=T),
+            matrix(unlist(data$dilation),nrow=length(data$dilation),byrow=T))
+
+indices = NULL
+events = NULL
+sub = NULL
+responses = NULL
+numOfTrial = NULL
+for(i in 1:length(data$event)){
+  if (length(data[["indices"]][[i]]) != 0){
+    indices = rbind(indices, matrix(data[["indices"]][[i]])-4000 )
+    events = rbind(events, matrix(data[["event"]][[i]]))
+    sub = rbind(sub,matrix(rep(data$sub[i],length(data[["indices"]][[i]]))))
+    responses = rbind(responses,matrix(rep(data$responses[i],length(data[["indices"]][[i]]))))
+    numOfTrial = rbind(numOfTrial,matrix(rep(data$numOfTrial[i],length(data[["indices"]][[i]]))))
+  }
+}
+
+ind_data_e2_raster = data.frame(
+  sub = sub,
+  numOfSwitch = responses,
+  indices = indices,
+  events = g1[events+1],
+  numOfTrial = numOfTrial,
+  exp = 'Exp2'
+)
+
+ind_data_e2 = data.frame(
+  sub = rep(data$sub,2),
+  numOfSwitch = rep(data$responses,2),
+  data_y = c(data$dilation_time,data$constriction_time),
+  events = rep(c('dilation','constriction'),times=c(length(data$sub),length(data$sub))),
+  exp = 'Exp2'
+)
+numOfSub_e2 = length(unique(ind_data_e2$sub))
+
+# ####### Figure 5A(raster) #####
+ind_data_raster = rbind(ind_data_e1_raster,ind_data_e2_raster)
+
+p = ggplot(ind_data_raster,aes(x = indices, y = numOfTrial,group=events,color=events))+
+  geom_point(shape=16,alpha=0.4,size=1)+
+  scale_color_manual(values = c('gray80','black'))+
+  facet_grid(numOfSwitch ~ exp )
+
+config = list(alpha = 0.4,
+              stride = 0.1,
+              label_x = "",
+              label_y = "# of PD events",
+              title = "")
+
+config$ylim = round(seq(0,2000,500),2)
+config$ylim_stride = 100
+config$xlim = round(seq(-2000,4000,1000),2)
+config$xlim_stride = 100
+
+p = setEmptyStyle(p,config)
+p = p +
+  scale_x_continuous(breaks=round(seq(-4000,4000,1000),2),labels=round(seq(-4,4,1),2))+
+  xlab('Time[sec]')+ ylab('# trial')+
+  coord_cartesian(xlim=c(-2100,4000),expand=FALSE)
+
+eval(parse(text=paste("p", countFigNum ,"=p", sep="")))
+countFigNum = countFigNum+1
+
+# ## average -----------------------------------------------------------------
+ind_data = rbind(ind_data_e1,ind_data_e2)
+ind_data$numOfSwitch = g3[as.integer(ind_data$numOfSwitch)+1]
+
+ind_data = ind_data[,c(1,2,4,5,3)]
+ind_data$numOfSwitch = factor(ind_data$numOfSwitch,c('unswitch','switch'))
+
+# data_PD = aggregate( data_y ~ sub*numOfSwitch, data = ind_data[ind_data$events == 'dilation',], FUN = "mean")
+# data_PC = aggregate( data_y ~ sub*numOfSwitch, data = ind_data[ind_data$events == 'constriction',], FUN = "mean")
+
+# # config = list(alpha = 0.4,
+# #               stride = 0.1,
+# #               label_x = "",
+# #               label_y = "# of pupil dailation events",
+# #               title = "")
+# # 
+# # p = dispLineGraph(data_ave,config,c("numOfSwitch"))
+# # p = setEmptyStyle(p)
+# # p = p +
+# #   scale_y_continuous(breaks=round(seq(2.1,2.4,0.1),2))+
+# #   # scale_x_continuous(breaks=round(seq(0.5,1),2))+
+# #   ylab('Normalized frequency')+
+# #   coord_cartesian(xlim=c(0.5,2.5),ylim=c(2.05,2.5),expand=FALSE)+
+# #   annotate(x=1, xend=2, y=2.05, yend=2.05, colour="black", lwd=0.5, geom="segment")+
+# #   annotate(x=0.5, xend=0.5, y=2.1, yend=2.4, colour="black", lwd=0.5, geom="segment")+
+# #   theme(
+# #     axis.ticks = element_line(colour = "black",size = 0.5)
+# #   )
+# 
+# 
+# ####### Figure 5B(average) ####### 
+data_anovaPD = aggregate( data_y ~ sub*numOfSwitch*exp, data = ind_data[ind_data$events == 'dilation',], FUN = "mean")
+data_anovaPC = aggregate( data_y ~ sub*numOfSwitch*exp, data = ind_data[ind_data$events == 'constriction',], FUN = "mean")
+
+# t = data_anova[data_anova$exp == 'Exp1',]
+# t$exp = NULL
+# anovakun(t,"sA",long=T, peta=T)
+# 
+# t = data_anova[data_anova$exp == 'Exp2',]
+# t$exp = NULL
+# anovakun(t,"sA",long=T, peta=T)
+
+reject = NULL
+for(iSub in unique(data_anovaPD$sub)){
+  if(dim(data_anova[data_anovaPD$sub == iSub,])[1] != 4){
+    reject = rbind(reject,iSub)
+  }
+}
+for(iSub in reject){
+  data_anovaPD = data_anovaPD[data_anovaPD$sub != iSub,]
+  data_anovaPC = data_anovaPC[data_anovaPC$sub != iSub,]
+}
+
+anovakun(data_anovaPD,"sAB",long=T, peta=T)
+anovakun(data_anovaPC,"sAB",long=T, peta=T)
+
+p = dispLineGraph(data_anovaPD,config,c("exp","numOfSwitch"))+
+  facet_grid(. ~ exp )
+
+config$ylim = round(seq(1.7,2.1,0.1),2)
+config$ylim_stride = 0.05
+config$xlim = round(seq(1,2,1),2)
+config$xlim_stride = 0.5
+
+p = setEmptyStyle(p,config)
+# 
+# # p = p +
+# #   scale_y_continuous(breaks=round(seq(2.0,2.4,0.1),2))+
+# #   # scale_x_continuous(breaks=round(seq(0.5,1),2))+
+# #   ylab('Normalized frequency')+
+# #   coord_cartesian(xlim=c(0.5,2.5),ylim=c(1.95,2.5),expand=FALSE)+
+# #   annotate(x=1, xend=2, y=1.95, yend=1.95, colour="black", lwd=0.5, geom="segment")+
+# #   annotate(x=0.5, xend=0.5, y=2.0, yend=2.4, colour="black", lwd=0.5, geom="segment")+
+# #   theme(
+# #     axis.ticks = element_line(colour = "black",size = 0.5)
+# #   )
+# 
+eval(parse(text=paste("p", countFigNum ,"=p", sep="")))
+countFigNum = countFigNum+1
+
+save(data_anovaPD,data_anovaPC,
+     file = "./data/dataset_figure5.rda")
+```
+
+```{r, message=FALSE, echo=FALSE, warning=FALSE,fig.width = 10, fig.height = 5}
+# ###### plot ###### 
+# p = combineGraphs(seq(1,countFigNum-1),'p',NULL)
+# plot(p)
+# width_fig=10
+# height_fig=15
+# CairoFonts(regular = "Times","Times")
+# CairoPDF(file="./figure/Figure4A",
+#          width=width_fig, height=height_fig)
+# print(p1)
+# dev.off()
+# 
+# width_fig=5
+# height_fig=5
+# CairoFonts(regular = "Times","Times")
+# CairoPDF(file="./figure/Figure4B",
+#          width=width_fig, height=height_fig)
+# print(p2)
+# dev.off()
+```

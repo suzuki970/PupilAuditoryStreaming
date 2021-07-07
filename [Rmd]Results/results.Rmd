@@ -1,0 +1,517 @@
+---
+title: "Result notes"
+author: "Yuta Suzuki"
+date: "3/2/2021"
+output: 
+  word_document:
+      reference_docx: results.docx
+  # html_document
+draft: yes
+# 
+---
+<style type="text/css">
+  body{
+  font-size: 14pt;
+  line-height: 2;
+  width: 100%;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# tinytex::install_tinytex()
+```
+
+```{r child="readFunc.Rmd"}
+```
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE, include=FALSE}
+
+# load("./data/Exp1/dataset_e2_20210420.rda")
+# load("./data/Exp1/Figure2.RData")
+load("./data/Exp1/figure2.rda")
+
+load("./data/Exp1/Figure3.RData")
+numOfsub = length(unique(data_res_tonic$sub))
+
+#### Behavioral(# of trials) ####
+ave_numOfTrial = aggregate( numOfTrial ~ numOfSwitch, data = data_numOfTrial, FUN = "mean")
+ave_numOfTrial$numOfTrial = round(ave_numOfTrial$numOfTrial,2)
+sd_numOfTrial = aggregate( numOfTrial ~ numOfSwitch, data = data_numOfTrial, FUN = "sd")
+sd_numOfTrial$numOfTrial = round(sd_numOfTrial$numOfTrial,2)
+anovakun(data_numOfTrial,"sA",long=T, peta=T)
+numOfTrial_table = forDrawingSigANOVA
+numOfTrial_post = forDrawingPost[["A"]][["bontab"]]
+
+#### Behavioral(RT) #### 
+anovakun(data_RT,"sA",long=T, peta=T)
+rt_sd = aggregate( RT ~ numOfSwitch, data = data_RT, FUN = "sd")
+rt_ave = aggregate( RT ~ numOfSwitch, data = data_RT, FUN = "mean")
+rt_sd$RT = round(rt_sd$RT,3)
+rt_ave$RT = round(rt_ave$RT,3)
+
+RT_table = forDrawingSigANOVA
+
+#### Figure 2A(average baseline pupil size) ####
+data_res_tonic$data_y = data_res_tonic$Size
+data_res_tonic$Size = NULL
+anovakun(data_res_tonic,"sA",long=T, peta=T)
+
+table_fig2 = forDrawingSigANOVA
+tVal_fig2 = forDrawingPost[["A"]][["bontab"]][["t"]]
+pVal_fig2 = forDrawingPost[["A"]][["bontab"]][["adj.p"]]
+
+x = data_res_tonic[data_res_tonic$numOfSwitch == "2+",]$data_y
+y = data_res_tonic[data_res_tonic$numOfSwitch == "0",]$data_y
+n = length(x)
+sc = sqrt((n*(var(x))+n*(var(y)))/(n*2))
+cohen_d0 = round(abs(mean(x)-mean(y))/sc,3)
+
+bayesF = ttestBF(x = x, y = y, paired=TRUE)
+bayesF_d0 = round(exp(bayesF@bayesFactor[["bf"]]),3)
+
+x = data_res_tonic[data_res_tonic$numOfSwitch == "2+",]$data_y
+y = data_res_tonic[data_res_tonic$numOfSwitch == "1",]$data_y
+n = length(x)
+sc = sqrt((n*(var(x))+n*(var(y)))/(n*2))
+cohen_d1 = round(abs(mean(x)-mean(y))/sc,3)
+bayesF = ttestBF(x = x, y = y, paired=TRUE)
+bayesF_d1 = round(exp(bayesF@bayesFactor[["bf"]]),3)
+
+#### Figure 2B (tertile) #####
+data = fromJSON(file="./data/Exp1/data_tertile20210610.json")
+data_tertile = data.frame(
+  sub = data$sub,
+  data_y = data$numOfSwitch_sorted,
+  Tertile = data$tertile
+)
+
+# data_tertile = data_tertile_e2
+x = as.numeric(data_tertile$Tertile)
+data_tertile$Tertile = as.numeric(data_tertile$Tertile)
+
+y = data_tertile$data_y
+f <- y ~  a*x + b
+model1 <- nls(f, start = c(a = 0, b = 0))
+
+f <- y ~  a*x^2 + b*x + c
+model2 <- nls(f, start = c(a = 0, b = 0, c=0))
+
+if (AIC(model1) > AIC(model2)){
+  model = model2
+}else{
+  model = model1
+}
+df <- data.frame(x = seq(1, 5, length = 10))
+data_curve = data.frame(
+  Tertile = df$x,
+  yy = predict(model, df)
+)
+
+tertile_e2_tVal = round(summary(model)[["coefficients"]]['b',]['t value'],4)
+tertile_e2_pVal = round(summary(model)[["coefficients"]]['b',]['Pr(>|t|)'],4)
+model_fig2b = model
+data_tertile = aggregate( . ~ sub*Tertile, data = data_tertile, FUN = "mean")
+# lm_model = lm(data = data_tertile, data_y ~ Tertile)
+r = cor.test(x,y)
+
+regBF_e1 = regressionBF(data_y ~ Tertile, data = data_tertile, progress=FALSE)
+regBF_e1 = round(exp(regBF_e1@bayesFactor[["bf"]]),3)
+
+#### Figure 2B (heatmap) #####
+data=fromJSON(file="../[Python]PreProcessing/Exp1/heatmap/corr2.json")
+melted_data <- melt(data)
+p_values=fromJSON(file="../[Python]PreProcessing/Exp1/heatmap/p_values2.json")
+melted_p_values <- melt(p_values)
+melted_data$p.value = round(melted_p_values$value,3)
+melted_data$value = round(melted_data$value,3)
+
+#### Figure 3A (cross-corr) #####
+data = fromJSON(file="../[Python]PreProcessing/Exp1/data/data_cross_corr_trial3.json")
+
+dat <- list(matrix(unlist(data$raw),nrow=length(data$raw),byrow=T),
+            matrix(unlist(data$raw_queue),nrow=length(data$raw_queue),byrow=T))
+names(dat) <- c('trial','seconds')
+ggName =  c('shuffled','raw')
+numOfTrial = dim(dat$trial)[1]
+numOfSub = length(unique(data$sub))
+lengthOfTime = dim(dat$trial)[2]
+
+ind_data <- data.frame(
+  sub =  rep( data$sub, times = rep( lengthOfTime, numOfTrial)),
+  data_y = c(t(matrix(t(dat$trial),nrow=1))),
+  condition = rep(ggName[data$randFlag+1], times = rep( lengthOfTime, numOfTrial)),
+  data_x = data$lags_trial
+)
+
+data_ccorr = aggregate( data_y ~ sub*condition*data_x, data = ind_data, FUN = "mean")
+data_ccorr = data_ccorr[order(data_ccorr$sub,data_ccorr$condition),]
+t = aggregate( data_y ~ sub*condition, data = data_ccorr, FUN = "max")
+maxLag = NULL
+for(i in 1 : length(t$data_y)){
+  tmp = data.frame(
+    sub = t$sub[i],
+    condition = t$condition[i],
+    data_y = data_ccorr[data_ccorr$data_y == t$data_y[i],]$data_x
+  )
+  maxLag = rbind(maxLag,tmp)
+}
+
+#### Figure 3B (peak corr.) #####
+maxVal = aggregate( data_y ~ sub*condition, data = data_ccorr, FUN = "max")
+x = maxVal[maxVal$condition == 'raw',]$data_y
+y = maxVal[maxVal$condition == 'shuffled',]$data_y
+n = length(x)
+sc = sqrt((n*(var(x))+n*(var(y)))/(n*2))
+CCF_max_cohen_d = round(abs(mean(x)-mean(y))/sc,3)
+CCF_max = t.test(x,y,var.equal=T,paired=T)
+CCF_max_bayesF = ttestBF(x = x, y = y, paired=TRUE)
+CCF_max_bayesF = round(exp(CCF_max_bayesF@bayesFactor[["bf"]]),3)
+
+#### Figure 3C (lag at peak corr.) #####
+x = maxLag[maxLag$condition == 'raw',]$data_y
+CCF_lag_bayesF = ttestBF(x = x)
+CCF_lag_bayesF = round(exp(CCF_lag_bayesF@bayesFactor[["bf"]]),3)
+CCF_lag = t.test(x, mu=0, alternative="less")
+
+#### Figure 3D (LMM) ####
+load("./data/Exp1/betaWtFunc.rda")
+data=fromJSON(file="./data/Exp1/data_include_past2.json")
+
+pVal = NULL
+betaWtFunc = data.frame()
+tmpAIC_model2 = NULL
+tmpAIC_model1 = NULL
+for(i in -20:20){
+  ind_data <- data.frame(
+    sub =  unlist(data$sub),
+    PDR = unlist(data[[paste("PDR_lag",i,sep="")]]),
+    ave = unlist(data[["ave"]]),
+    Baseline = unlist(data[["Baseline"]]),
+    diff = unlist(data[["diff"]]),
+    numOfSwitch = unlist(data[["numOfSwitch"]])
+  )
+
+  ind_data[ind_data$numOfSwitch > 2,]$numOfSwitch = 2
+  ind_data = ind_data[ind_data$PDR != 0,]
+
+  model = lmer( numOfSwitch ~ PDR + (1+PDR|sub),ind_data)
+  gt = ranef(model)[["sub"]][["PDR"]]
+
+  model = summary(model)
+
+  pVal = rbind(pVal,model[["coefficients"]]['PDR',]['Pr(>|t|)'])
+
+  subpVal=NULL
+  for(iSub in unique(unlist(data$sub))){
+    tmp  = ind_data[ind_data$sub == iSub,]
+    submodel = lm(numOfSwitch ~ PDR, data = tmp)
+    subpVal = rbind(subpVal,summary(submodel)[["coefficients"]]['PDR',]['Pr(>|t|)'])
+  }
+
+  betaWt = data.frame(
+    sub = unique(unlist(data$sub)),
+    data_y = gt + model[["coefficients"]]['PDR',]['Estimate'],
+    lag = i,
+    pval = p.adjust(as.numeric(subpVal), method = "BH")
+  )
+  betaWtFunc =  rbind(betaWtFunc,betaWt)
+
+}
+# save(betaWtFunc, pVal, file = "./data/Exp1/betaWtFunc.rda")
+
+betaWtFunc$sub = subName[betaWtFunc$sub]
+dat_ave = aggregate( data_y ~ lag, data = betaWtFunc, FUN = "mean")
+dat_ave$sub = 'average'
+dat_ave$pval = p.adjust(pVal, method = "BH")
+res_lmm = dat_ave[dat_ave['pval'] < 0.05,]$lag
+
+#### Figure 3E (AUC) #### 
+data=fromJSON(file="./data/Exp1/roc_past2.json")
+
+ggName = c('Baseline','Transient')
+ggName2 = c('e1','e2')
+dat <- list((matrix(unlist(data$FalsePos),nrow=length(data$FalsePos),byrow=T)),
+            (matrix(unlist(data$TruePos),nrow=length(data$TruePos),byrow=T)))
+
+names(dat) <- c('FalsePos','TruePos')
+
+numOfSub = length(unique(data$sub))
+numOfTrial = dim(dat$FalsePos)[1]
+lengthOfTime = dim(dat$FalsePos)[2]
+timeLen = c(0,1)
+
+ind_data_ROC = data.frame(
+  sub =  rep( data$sub, times = rep( lengthOfTime, numOfTrial)),
+  data_y = t(matrix(t(dat$TruePos),nrow=1)),
+  data_x = t(matrix(t(dat$FalsePos),nrow=1)),
+  lag = rep( as.character(data$lag), times = rep( lengthOfTime, numOfTrial)),
+  condition = rep( ggName[unlist(data$type)+1], times = rep( lengthOfTime, numOfTrial)),
+  exp = rep( ggName2[unlist(data$exp)], times = rep( lengthOfTime, numOfTrial))
+)
+ind_data_ROC$lag <- factor(ind_data_ROC$lag,levels =c("-20","-15","-10","-5","0","5","10","15","20"))
+ind_data_ROC = ind_data_ROC[ind_data_ROC$exp == 'e1' & ind_data_ROC$condition == 'Baseline' ,]
+ind_data_ROC = aggregate( . ~ lag, data = ind_data_ROC, FUN = "mean")
+
+p = ggplot(ind_data_ROC,aes(x=data_y,y = data_x,group = interaction(sub,lag),color=lag))+
+  geom_line()+
+  annotate(x=0, xend=1, y=0, yend=1, colour="black", lwd=0.5, geom="segment")+
+  facet_wrap(sub ~ .)
+
+
+ind_data = data.frame(
+  sub = unlist(data$sub),
+  data_y =unlist( data$AUC),
+  lag = unlist(data$lag),
+  condition = ggName[unlist(data$type)+1],
+  exp = ggName2[unlist(data$exp)]
+)
+
+dat_p = data.frame()
+for(iExp in 1:2){
+  
+  for (iCondition in 1:2){
+    pVal = NULL
+    for(iLag in unique(ind_data$lag)){
+      tmp = ind_data[ind_data$lag == iLag & 
+                       ind_data$exp == ggName2[iExp] &
+                       ind_data$condition == ggName[iCondition],]
+      d = t.test(tmp$data_y,mu=0.5, alternative="greater")
+      pVal = rbind(pVal,round(d[["p.value"]], digits = 4))
+    }
+    tmp_dat_p = data.frame(
+      pVal = p.adjust(pVal, method = "BH"),
+      data_y = 0,
+      data_x = unique(ind_data$lag),
+      condition = ggName[iCondition],
+      exp = ggName2[iExp]
+    )
+    dat_p = rbind(dat_p,tmp_dat_p)
+  }
+}
+
+dat_p['flag'] = rep('gray',dim(dat_p)[1])
+ind = dat_p['pVal'] < 0.1 & dat_p['pVal'] > 0.05 & dat_p$condition == 'Baseline'
+dat_p['data_y'][ind] = 0.58
+dat_p['flag'][ind] = 'gray'
+
+ind = dat_p['pVal'] < 0.1 & dat_p['pVal'] > 0.05 & dat_p$condition == 'Transient'
+dat_p['data_y'][ind] = 0.44
+dat_p['flag'][ind] = 'gray'
+
+ind = dat_p['pVal'] < 0.05 & dat_p$condition == 'Baseline'
+dat_p['data_y'][ind] = 0.58
+dat_p['flag'][ind] = 'black'
+
+ind = dat_p['pVal'] < 0.05 & dat_p$condition == 'Transient'
+dat_p['data_y'][ind] = 0.44
+dat_p['flag'][ind] = 'black'
+
+ind_data_anova = ind_data[ind_data$exp == 'e1',]
+ind_data_anova$exp = NULL
+ind_data_anova = ind_data_anova[,c(1,3,4,2)]
+
+```
+
+# Results
+We measured pupil size using an infrared camera while participants listened to the consecutive auditory tone sequences. As illustrated in __Figure 1A__, the auditory stream patterns elicit alternating percepts of a single galloping or two isolated rhythms. Participants were engaged in counting the number of perceptual switches in Experiment 1 and answering whether they experienced a perceptual switch in Experiment 2 at a certain period (see Method).
+
+## Experiment 1
+### Behavioral response
+Participants reported the number of perceptual switches every few seconds (see Methods). We classified the number of switches into 0, 1, and more than 2 times(2+); the averaged number of trials were `r ave_numOfTrial[ave_numOfTrial$numOfSwitch == '0',]$numOfTrial` $\pm$ `r sd_numOfTrial[sd_numOfTrial$numOfSwitch == '0',]$numOfTrial`, `r ave_numOfTrial[ave_numOfTrial$numOfSwitch == '1',]$numOfTrial` $\pm$ `r sd_numOfTrial[sd_numOfTrial$numOfSwitch == '1',]$numOfTrial`, and `r ave_numOfTrial[ave_numOfTrial$numOfSwitch == '2+',]$numOfTrial` $\pm$ `r sd_numOfTrial[sd_numOfTrial$numOfSwitch == '2+',]$numOfTrial`, respectively ($F$(1,`r round(numOfTrial_table[2,]['df.col'],3)`) = `r round(numOfTrial_table[2,]['f.col'],3)`, $p$ = `r round(numOfTrial_table[2,]['p.col'],3)`, $\eta^2_p$ = `r round(numOfTrial_table[2,]['p.eta^2'],3)`). Post analysis showed that the number of trials for 1 time switch was significantly larger than 0 and 2+ ( $t$(1, `r numOfTrial_post[2,]$df`) = `r round(numOfTrial_post[2,]$t,3)`, $adj.p$ = `r round(numOfTrial_post[2,]$adj.p, 3)`, $t$(1, `r numOfTrial_post[1,]$df`) = `r round(numOfTrial_post[1,]$t,3)`, $adj.p$ = `r round(numOfTrial_post[1,]$adj.p, 3)`).
+RT of each response were `r rt_ave[rt_ave$numOfSwitch == 0,]$RT` $\pm$ `r rt_sd[rt_sd$numOfSwitch == 0,]$RT` sec, `r rt_ave[rt_ave$numOfSwitch == 1,]$RT` $\pm$ `r rt_sd[rt_sd$numOfSwitch == 1,]$RT` sec, and `r rt_ave[rt_ave$numOfSwitch == 2,]$RT` $\pm$ `r rt_sd[rt_sd$numOfSwitch == 2,]$RT` sec ($F$(1,`r round(RT_table[2,]['df.col'],3)`) = `r round(RT_table[2,]['f.col'],3)`, $p$ = `r round(RT_table[2,]['p.col'],3)`, $\eta^2_p$ = `r round(RT_table[2,]['p.eta^2'],3)`).
+
+
+### Time course of baseline pupil change
+__Figure 2A__ illustrates the grand-averaged baseline pupil changes across participants before the task queue onset, as a function of perceptual switches number. A one-way repeated measures ANOVA for averaged changes in baseline pupil size from -1000 ms to the task queue onset for each answer revealed a significant main effect on the number of a perceptual switch ($F$(1,`r round(table_fig2[2,]['df.col'],3)`) = `r round(table_fig2[2,]['f.col'],3)`, $p$ = `r round(table_fig2[2,]['p.col'],3)`, $\eta^2_p$ = `r round(table_fig2[2,]['p.eta^2'],3)`) (__Figure 2B__). Following multiple comparisons showed that the baseline pupil size in more than two times of perceptual switch was significantly larger than in less than one-time switch and no-switch ($t$(1, `r numOfsub-1`) = `r round(tVal_fig2[1],3)`, $adj.p$ = `r round(pVal_fig2[1],3)`, Cohen’s  $d$ = `r cohen_d0`, $BF_{10}$ =  `r bayesF_d0`; $t$(1, `r numOfsub-1`) = `r round(tVal_fig2[2],3)`, $adj.p$ =  `r round(pVal_fig2[2],3)`, Cohen’s  $d$ = `r cohen_d1`, $BF_{10}$ =  `r bayesF_d1`, respectively)), indicating that the baseline pupil size, to prior counting the number of switches, was related to a subsequent number of perceptual transition.
+
+### The averaged number of perceptual switches classified by pupil size bins
+Since the answered number of trials was significantly different among 0, 1, and 2+ as shown above, we averaged the number of perceptual switches based on baseline pupil size bins which contained an equal number of trials in each participant so as to avoid the influence of the number of trials as shown in __Figure 2B__. The data was fitted by a simple regression model ($y$ = `r round(summary(model_fig2b)[['coefficients']]['a',]['Estimate'],3)`$x$ + `r round(summary(model_fig2b)[['coefficients']]['b',]['Estimate'],3)`, $R$ = `r round(r[['estimate']][['cor']],3)`, $t$ = `r tertile_e2_tVal`, $p$ = `r tertile_e2_pVal`). Consistent with the previous analysis, the number of switches was monotonically increased with the baseline pupil size.
+
+### Correlation heatmap
+As a further analysis, we calculated the correlation between the number of switch and several eye-metrics (__Figure 2C__); besides the significant correlation with baseline pupil size ($R$ = `r melted_data[melted_data$L1 == 'numOfSwitch' & melted_data$L2 == 'Baseline',]$value`, $p$ = `r melted_data[melted_data$L1 == 'numOfSwitch' & melted_data$L2 == 'Baseline',]$p.value`), besides the significant positive correlation between the number of switch and baseline pupil size ($R$ = `r melted_data[melted_data$L1 == 'Transient' & melted_data$L2 == 'Baseline',]$value`, $p$ = `r melted_data[melted_data$L1 == 'Transient' & melted_data$L2 == 'Baseline',]$p.value`). Since the pupil change is mediated by the dilater/sphincter muscle in the iris, this might be interpreted as a trade-off mechanism of the iris musculature or activation of ANS  __(Joshi et al., 2016)__.
+
+### Cross-correlation function
+Each trial lasted for 5-7 s, segregated by a response cue to ask for behavioral responses. In the cross-correlation analysis, we aligned the timing of behavioral response and pupil size throughout the experimental session (see Method). Cross-correlation functions between the changes in baseline pupil size and the number of perceptual switches were calculated in every single subject. We found that the number of switches was positively correlated with the pupil size up to 5 trials (nearly 25 to 35 s) ahead of the response time (Figure 3A). The maximum cross-correlation coefficient in raw cross-correlation was significantly higher than in shuffled (__Figure 3A__).
+The maximum cross-correlation coefficient in raw cross-correlation was significantly higher than in shuffled  ($t$(1, `r numOfsub-1`) = `r round(CCF_max[["statistic"]][["t"]],3)`, $p$ = `r round(CCF_max[["p.value"]], 3)`, Cohen’s  $d$ = `r CCF_max_cohen_d`, $BF_{10}$ =  `r CCF_max_bayesF`). Furthermore, the averaged lag at peak correlation was significantly shifted to negative ($t$(1, `r numOfsub-1`) = `r round(CCF_lag[["statistic"]][["t"]],3)`, $p$ = `r round(CCF_lag[["p.value"]], 3)`, $BF_{10}$ =  `r CCF_lag_bayesF`) (__Figure 3C__).
+
+### Liner mixed modeling and ROC curve
+In this section, we focused on (a) how long the baseline pupil size effect on the number of perceptual switches at a certain trial lasts, (b) variability within participants, (c) classification accuracy. To address these, we calculated beta weights using a linear mixed-model (LMM) (Figure 3D) regarded the number of perceptual switches as dependent variable, the baseline pupil size as fixed effect and participants as random effect. For each trial, LMM was performed repeatedly changing the baseline pupil size data adopted from -20 to 20 trials corresponding to the answer at a certain trial. In consistent with the cross-correlation analysis, the LMM revealed a significant positive correlation between the number of switch and the baseline pupil size with not larger individual differences at least from -7 to 0 trial (i.e., 30s). Furthermore, the detection performance was quantified by the area under the curve (AUC) using receiver operating characteristic (ROC) curves (Figure 3E). Wilcoxon rank-sum test showed that the AUC from -5 to 5 trial were significantly greater than chance level (i.e., 0.5).
+
+$CCF(\tau) = \frac{Cov(P(t),N_{switch}(t+\tau))}{\sigma_{P(t)}\sigma_{N_{switch}(t+\tau)}}$ 
+
+
+
+
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE, include=FALSE}
+
+go1 = c("unswitch","switch")
+load("./data/Exp2/figure3.rda")
+
+#### Behavioral(RT) ####
+# anovakun(data_RT,"sA",long=T, peta=T)
+rt_sd = aggregate( RT ~ Responses, data = data_RT, FUN = "sd")
+rt_ave = aggregate( RT ~ Responses, data = data_RT, FUN = "mean")
+rt_sd$RT = round(rt_sd$RT,3)
+rt_ave$RT = round(rt_ave$RT,3)
+
+# RT_table = forDrawingSigANOVA
+x = data_RT[data_RT$Responses == 0,]$RT
+y = data_RT[data_RT$Responses == 1,]$RT
+
+RT_table = t.test(x,y,var.equal=T,paired=T)
+
+RT_cohen_d = cohen.d(x,y,paired=TRUE, within=TRUE)
+RT_cohen_d = round(abs(RT_cohen_d[["estimate"]]),3)
+
+# bayesF = ttestBF(x = x, y = y, paired=TRUE)
+# bayesF = round(exp(bayesF@bayesFactor[["bf"]]),3)
+
+#### Behavioral(trials) ####
+data_numOfTrial = aggregate( numOfTrial ~ sub*Responses, data = data_corr, FUN = "max")
+
+ave_numOfTrial = aggregate( numOfTrial ~ Responses, data = data_numOfTrial, FUN = "mean")
+ave_numOfTrial$numOfTrial = round(ave_numOfTrial$numOfTrial,2)
+sd_numOfTrial = aggregate( numOfTrial ~ Responses, data = data_numOfTrial, FUN = "sd")
+sd_numOfTrial$numOfTrial = round(sd_numOfTrial$numOfTrial,2)
+
+x = data_numOfTrial[data_numOfTrial$Responses == 0,]$numOfTrial
+y = data_numOfTrial[data_numOfTrial$Responses == 1,]$numOfTrial
+
+numOfTrial_e2_table = t.test(x,y,var.equal=T,paired=T)
+
+numOfTrial_e2_cohen_d = cohen.d(x,y,paired=TRUE, within=TRUE)
+numOfTrial_e2_cohen_d = round(abs(numOfTrial_e2_cohen_d[["estimate"]]),3)
+
+# bayesF = ttestBF(x = x, y = y, paired=TRUE)
+# bayesF = round(exp(bayesF@bayesFactor[["bf"]]),3)
+
+#### Figure 4A(# of switch) ####
+numOfSub_e2 = length(unique(data_res$sub))
+  
+data_res$Responses = go1[data_res$Responses+1]
+data_res$Responses = factor(data_res$Responses,levels = go1)
+
+data_res = data_res[,c(1,2,4,3)]
+data_res = data_res[data_res$type == 'size',]
+data_res$type = NULL
+
+x = data_res[data_res$Responses == "unswitch",]$data_y
+y = data_res[data_res$Responses == "switch",]$data_y
+res = t.test(x,y,var.equal=T,paired=T)
+
+tVal = round(res[["statistic"]][["t"]],3)
+pVal = round(res[["p.value"]],3)
+
+cohen_d = cohen.d(x,y,paired=TRUE, within=TRUE)
+cohen_d = round(abs(cohen_d[["estimate"]]),3)
+
+bayesF = ttestBF(x = x, y = y, paired=TRUE)
+bayesF = round(exp(bayesF@bayesFactor[["bf"]]),3)
+
+#### Figure 4B(tertile) ####
+data_tertile=fromJSON(file="./data/Exp2/data_tertile20210610.json")
+data_tertile_e2 = data.frame(
+  sub = data_tertile$sub,
+  Tertile = data_tertile$tertile,
+  responses_sorted = data_tertile$responses_sorted,
+  data_y = data_tertile$responses_sorted
+)
+data_tertile_e2 = aggregate( . ~ sub*Tertile, data = data_tertile_e2, FUN = "mean")
+
+data_tertile_e2$sub = subName[data_tertile_e2$sub]
+
+x = as.numeric(data_tertile_e2$Tertile)
+y = data_tertile_e2$data_y
+f <- y ~  a*x + b
+model1 <- nls(f, start = c(a = 0, b = 0))
+
+f <- y ~  a*x^2 + b*x + c
+model2 <- nls(f, start = c(a = 0, b = 0, c=0))
+
+if (AIC(model1) > AIC(model2)){
+  model = model2
+}else{
+  model = model1
+}
+df <- data.frame(x = seq(1, 5, length = 10))
+data_curve = data.frame(
+  Tertile = df$x,
+  yy = predict(model, df)
+)
+
+tertile_e1_tVal = round(summary(model)[["coefficients"]]['b',]['t value'],4)
+tertile_e1_pVal = round(summary(model)[["coefficients"]]['b',]['Pr(>|t|)'],4)
+
+# lm_model_e2 = lm(data = data_tertile_e2, data_y ~ Tertile)
+data_tertile_e2 = aggregate( . ~ sub*Tertile, data = data_tertile_e2, FUN = "mean")
+# r_e2 = cor.test(data_tertile_e2$Tertile, data_tertile_e2$responses_sorted)
+r_e2 = cor.test(x,y)
+
+f = data.frame(
+  sub = as.character(unique(data_tertile_e2$sub)),
+  x = data_tertile_e2$Tertile,
+  y = data_tertile_e2$responses_sorted
+)
+
+#### Figure 5 ####
+load('./data/dataset_figure5.rda')
+# ind_data = ind_data[ind_data$events == 'dilation',]
+# data_ave = aggregate( data_y ~ sub*numOfSwitch*exp, data = ind_data, FUN = "mean")
+
+anovakun(data_anovaPD,"sAB",long=T, peta=T)
+event_PD_table = forDrawingSigANOVA
+anovakun(data_anovaPC,"sAB",long=T, peta=T)
+event_PC_table = forDrawingSigANOVA
+```
+
+## Experiment 2
+In Experiment 1, we reported that the baseline pupil size reflected the frequency of perceptual switch. However, one concern to the result was the effect of perceptual load on baseline pupil size such as counting the number of perceptual switches since baseline pupil size is associated with the performance of working memory task  __(Aminihajibashi et al., 2020; Schneider et al., 2016)__. Experiment 2 was conducted to assess the effect of perceptual load on baseline pupil size in order to change the task into a forced-choice task (i.e., yes or no) so that the effect was assumed to be similar or less than Experiment 1. 
+
+### Behavioral response
+Participants reported whether perceptual switches occurred or not. The averaged number of trials of 'yes' and 'no' were `r ave_numOfTrial[ave_numOfTrial$Responses == 0,]$numOfTrial` $\pm$ `r sd_numOfTrial[sd_numOfTrial$Responses == '0',]$numOfTrial` and `r ave_numOfTrial[ave_numOfTrial$Responses == '1',]$numOfTrial` $\pm$ `r sd_numOfTrial[sd_numOfTrial$Responses == '1',]$numOfTrial`, respectively ($t$(1,`r numOfTrial_e2_table[["parameter"]][["df"]]`) = `r round(numOfTrial_e2_table[["statistic"]][["t"]],3)`, $p$ = `r round(numOfTrial_e2_table[["p.value"]],3)`, Cohen’s  $d$ = `r numOfTrial_e2_cohen_d`). 
+RT in the answer of ‘yes’ (`r rt_ave[rt_ave$Responses == 0,]$RT` $\pm$ `r rt_sd[rt_sd$Responses == 0,]$RT` sec) was significantly faster than ‘no’ (`r rt_ave[rt_ave$Responses == 1,]$RT` $\pm$ `r rt_sd[rt_sd$Responses == 1,]$RT` sec) ($t$(1,`r RT_table[["parameter"]][["df"]]`) = `r round(RT_table[["statistic"]][["t"]],3)`, $p$ = `r round(RT_table[["p.value"]],3)`, Cohen’s  $d$ = `r RT_cohen_d`), most likely because the participants’ answer was determined in the moment of occurrence of a perceptual switch in ‘yes’ trial. Thus, perceptual load in terms of task resource allocation was expected to be smaller in the trial where a perceptual switch occurs. 
+
+### Baseline pupil size
+__Figures 4A__ and __B__ show the grand-averaged time-course of baseline pupil changes and averaged baseline pupil size across participants around the task queue onset. Consistent with Experiment 1, a paired t-test for averaged changes in baseline pupil size from -1000 ms to the task queue onset for each answer (i.e., the presence or absence of perceptual switch) showed that the baseline pupil size in the presence of a perceptual switch was significantly larger than in the absence of perceptual switch ($t$(1, `r numOfSub_e2-1`) = `r round(tVal[1],3)`, $p$ = `r round(pVal[1],3)`, Cohen’s  $d$ = `r cohen_d`, $BF_{10}$ =  `r bayesF`).
+
+
+Following the normalization of the probability of perceptual switch by z-scored for each participant, we averaged the probability of perceptual switch based on baseline pupil size bins as performed in Experiment 1 (__Figure 4C__). The model fitted by a simple regression showed the significance in line with Experiment 1 ($y$ = `r round(summary(model)[['coefficients']]['a',]['Estimate'],3)`$x$ + `r round(summary(model)[['coefficients']]['b',]['Estimate'],3)`, $R$ = `r round(r_e2[['estimate']][['cor']],3)`, $t$ = `r tertile_e1_tVal`, $p$ = `r tertile_e1_pVal`).
+
+### PD events
+To assess the relationship with transient pupil change as reported previously __(Einhäuser et al., 2008; Turi et al., 2018)__, we calculated the rate of dilation/constriction events (see Methods). __Figure 5A__ shows the occurrence of dilation/constriction events for each trial across all subjects, over 2 sec before the task response to 5 sec after the response. We averaged the number of dilation events after the task response (__Figure 5B__). Two-way repeated measures ANOVAs for averaged dilation events for each answer and each experiment revealed that the average number of dilation events was significantly larger in switch trials than unswitch trials, consistent with previous study ($F$(1,`r round(event_PD_table[1,]['df.col'],3)`) = `r round(event_PD_table[2,]['f.col'],3)`, $p$ = `r round(event_PD_table[2,]['p.col'],3)`, $\eta^2_p$ = `r round(event_PD_table[2,]['p.eta^2'],3)`). The number of dilation events were marginaly larger in Experiment 1 than 2 ($F$(1,`r round(event_PD_table[3,]['df.col'],3)`) = `r round(event_PD_table[4,]['f.col'],3)`, $p$ = `r round(event_PD_table[4,]['p.col'],3)`, $\eta^2_p$ = `r round(event_PD_table[4,]['p.eta^2'],3)`). Numerous studies showed that the pupil change related to the LC-NE system reflects a broad range of cognitive processes including perceputual load. Thus, the differences between exeriments might be explainiend by the higer perceptual load in the Experiment 1 due to the task difference. There was no interaction between the answer and experiment ($F$(1,`r round(event_PD_table[5,]['df.col'],3)`) = `r round(event_PD_table[6,]['f.col'],3)`, $p$ = `r round(event_PD_table[6,]['p.col'],3)`, $\eta^2_p$ = `r round(event_PD_table[6,]['p.eta^2'],3)`).
+
+### PC events
+Main effect on alternation
+Main effect on experiments 
+Interaction
+($F$(1,`r round(event_PC_table[1,]['df.col'],3)`) = `r round(event_PC_table[2,]['f.col'],3)`, $p$ = `r round(event_PC_table[2,]['p.col'],3)`, $\eta^2_p$ = `r round(event_PC_table[2,]['p.eta^2'],3)`; $F$(1,`r round(event_PC_table[3,]['df.col'],3)`) = `r round(event_PC_table[4,]['f.col'],3)`, $p$ = `r round(event_PC_table[4,]['p.col'],3)`, $\eta^2_p$ = `r round(event_PC_table[4,]['p.eta^2'],3)`; $F$(1,`r round(event_PC_table[5,]['df.col'],3)`) = `r round(event_PC_table[6,]['f.col'],3)`, $p$ = `r round(event_PC_table[6,]['p.col'],3)`, $\eta^2_p$ = `r round(event_PC_table[6,]['p.eta^2'],3)`).
+
+### Statistical analysis
+A one-way repeated-measures analysis of variance (ANOVA) was performed using the baseline pupil size and the number of switches in Experiment 1 and presence vs. absence of perceptual switch in Experiment 2 as within-subject factors. The level of statistical significance was set to $p$ < 0.05 for all analyses. Pairwise comparisons of the main effects were corrected through multiple comparisons using the modified Bonferroni method. Effect sizes were given as partial $\eta^2$; $\eta^2_p$ for ANOVA and as Cohen’s d for $t$-tests. To quantify the evidence in the data, we performed Bayesian one-sample t-tests using the BayesFactor package (v0.9.12-4.2) __(Morey, 2019)__ for the R software (Version 3.6.3) __(R Core Team, 2020)__. We reported Bayesian Factor (BF) estimating the relative weight of the evidence in favor of $H_1$ over $H_0$ as $BF_{10}$. Greenhouse–Geisser corrections were performed when the results of Mauchly’s sphericity test were significant. 
+
+In the analysis of pupil response bins, we fitted the following two models to assess  whether the behavioral variability ($Y$) can be explained by a second-order polynomials or monotonic fitting. 
+
+
+Model 1 : $Y = \beta_0 + \beta_1P$
+
+Model 2 : $Y = \beta_0 + \beta_1P + \beta_2P^2$
+
+
+where $\beta$ as regression coefficients and $P$ as the baseline pupil response bins. The models were quantified using the Akaike information criterion (AIC), which specifies the evidence of goodness of fit for a model.
+
+In Experiment 1, the value of Pearson’s correlation was calculated at a lag between the pupil size and the normalized number of switches using $z$-score in cross-correlation. $p$ values for Pearson’s correlation were corrected by FDR for multiple comparisons using the Benjamini and Hochberg method __(Benjamini and Hochberg, 1995)__.
+
+
+We used a linear mixed-effects modeling (LMM) with participant as a random effect to calculate the correlation between the individuals' baseline pupil size ($\vec{P}_{n}$) and the number of perceptual switch ($\vec{S_n}$) in Experiment 1 as follwing model, using the lme4 packages __(Bates et al., 2015)__.
+
+$[S_i]_{n+t},(-t < i < n) \sim \alpha_t + \beta_t * [P_i]_{n+t},(0 < i < n+t) + N(0,\sigma_{participant}),(t \leq 0)$
+
+$[S_i]_{n+t},(0 < i < n-t) \sim \alpha_t + \beta_t * [P_i]_{n+t},(t < i < n ) + N(0,\sigma_{participant}),(t > 0)$
+
+where $\beta$ as beta weight and $n$ as indivisuals' total number of trials. The analyzed period was $-20 \leq t \leq 20$
+
+
+### Pupil dilation/constriction events analysis
+Pupil slope was computed using second order central differences after applying 1 s window of smoothing filter within a trial. Pupil dilation and constriction events were defined as maximum positive and negative values of the slope, separeted by $\leq$ 300 ms (__Joshi et al., 2016; Zhao et al., 2019__). The analysis interval was from 2 s before to 5 s after the task response. For each trial, the number of dilation events were summed and then all averaged between switch and unswitch condition in each participant.
