@@ -114,20 +114,9 @@ for iSub,subName in enumerate(folderName):
             event_data[mm].append(tmp)
     
     for e in event_data['EBLINK']:      
-        # event_data['Blink'].append([e_data[2] for e_data in e])
         datHash['Blink'].append([[e_data[1],e_data[2],e_data[3]] for e_data in e])
     for e in event_data['ESACC']:      
-        # event_data['Saccade'].append([[e_data[2],e_data[8]] for e_data in e])
         datHash['Saccade'].append([[e_data[2],e_data[8]] for e_data in e])
-    # event_data['numOfEBLINK'] = [len(e) for e in event_data['EBLINK'] if len(e)>0]   
-    # event_data['numOfESACC'] = [len(e) for e in event_data['ESACC']]
-    # event_data['ampOfESACC']=[]
-    # for line in event_data['ESACC']:
-    #     tmp = []
-    #     for e in line:
-    #         tmp.append(float(e[8]))
-    #     # event_data['ampOfESACC'].append(np.mean(tmp))
-    #     event_data['ampOfESACC'].append(tmp)
         
     tmp_numOfSwitch = np.array([int(r[1]) for r in events_response])
     timeLen = int(cfg['WID_ANALYSIS']*fs)
@@ -177,5 +166,5 @@ for mm in mmName:
     if not isinstance(datHash[mm],list):
         datHash[mm] = datHash[mm].tolist()
 
-with open(os.path.join("./data/data_original20210630.json"),"w") as f:
+with open(os.path.join("./data/data_original.json"),"w") as f:
         json.dump(datHash,f)

@@ -2,7 +2,6 @@
 title: "makeDataSet"
 author: "Yuta Suzuki"
 date: "6/10/2021"
-output: html_document
 ---
 
 ```{r setup, include=FALSE}

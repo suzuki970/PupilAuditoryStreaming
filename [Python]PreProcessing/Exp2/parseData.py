@@ -6,6 +6,7 @@ import os
 from pre_processing import re_sampling
 
 folderName = glob.glob("./results/*")
+folderName.sort()
 
 datHash={"PDR":[],
          "PDR_baseline":[],
@@ -22,27 +23,17 @@ datHash={"PDR":[],
          # "ampOfSaccade":[]
          }
 
-mmFlag = False
-normFlag = True
-numOfSub = 0 
-# saveFileLocs = '/Users/yuta/Desktop/e1_endogenous_Switching/'
-saveFileLocs = '/Users/yutasuzuki/Desktop/Pxx_auditoryIllusion/e1_endogenous_Switching/'
-# saveFileLocs = '/Users/yuta/Desktop/Pxx_auditoryIllusion/e1_endogenous_Switching/'
+cfg={'THRES_DIFF':10,
+     'WID_ANALYSIS':4,
+     'useEye':2,
+     'WID_FILTER':[],
+     'mmFlag':False,
+     'normFlag':True,
+     's_trg':[]
+     }
 
-# if mmFlag:
-#     if os.path.exists(saveFileLocs + "data_original_mm.json"):
-#         f = open(os.path.join(str( saveFileLocs + 'data_original_mm.json')))
-#         datHash = json.load(f)
-#         f.close()
-#         folderName = folderName[int(max(datHash['sub'])):]
-#         numOfSub = int(max(datHash['sub']))
-# else:
-#     if os.path.exists(saveFileLocs + "data_original.json"):
-#         f = open(os.path.join(str( saveFileLocs + 'data_original.json')))
-#         datHash = json.load(f)
-#         f.close()
-#         folderName = folderName[int(max(datHash['sub'])):]
-#         numOfSub = int(max(datHash['sub']))
+
+saveFileLocs = './data/'
 
 
 for iSub,subName in enumerate(folderName):
@@ -56,7 +47,7 @@ for iSub,subName in enumerate(folderName):
         
     f.close()
 
-    eyeData,events,initialTimeVal,fs = asc2array(dat, 2, mmFlag, normFlag)
+    eyeData,events,initialTimeVal,fs = asc2array(dat, cfg)
     
     pupilData = eyeData['pupilData']
     gazeX = eyeData['gazeX']
@@ -66,7 +57,6 @@ for iSub,subName in enumerate(folderName):
     
     coef = fs / 1000
     
-    # events_response = [[int(int(e[0])- initialTimeVal),e[1]] for e in events['MSG'] if e[1] == 'one_stream' or e[1] == 'two_stream'  or e[1] == 'switch']
     events_response = [[int(int(e[0])- initialTimeVal),e[1]] for e in events['MSG'] if e[1] == 'switch' or e[1] == 'no-Switch']
     events_queue = [[int(int(e[0])- initialTimeVal),e[1]] for e in events['MSG'] if e[1] == 'task_queue']
     events_queue.append([int(int(events['MSG'][-1][0])- initialTimeVal), "dummy"])
@@ -129,7 +119,7 @@ for iSub,subName in enumerate(folderName):
             elif events_response[i][1] == 'no-Switch':
                 datHash['responses'].append(0)
          
-    datHash['sub'] = np.r_[datHash['sub'], np.ones(len(events_response))*(numOfSub+iSub+1)]
+    datHash['sub'] = np.r_[datHash['sub'], np.ones(len(events_response))*(iSub+1)]
     
     sTime = 4
     eTime = 5
@@ -190,12 +180,5 @@ for mm in mmName:
     if not isinstance(datHash[mm],list):
         datHash[mm] = datHash[mm].tolist()
         
-with open(os.path.join(saveFileLocs + "/data_original20210409.json"),"w") as f:
+with open(os.path.join(saveFileLocs + "/data_original.json"),"w") as f:
     json.dump(datHash,f)
-
-# if mmFlag:
-#     with open(os.path.join(saveFileLocs + "data_original.json"),"w") as f:
-#             json.dump(datHash,f)
-# elif normFlag:
-#     with open(os.path.join(saveFileLocs + "data_original_normalized.json"),"w") as f:
-#             json.dump(datHash,f)
