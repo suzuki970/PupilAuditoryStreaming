@@ -59,9 +59,9 @@ ax.set_xticklabels(
 # plt.savefig('simple_heatmap.pdf')
 plt.show()
 
-corr[mask==True] = 0
-corr.to_json(os.path.join("./corr2.json"))
+# corr[mask==True] = 0
+# corr.to_json(os.path.join("./corr2.json"))
 
-p_values = pd.DataFrame(p_values)
-p_values[mask==True] = 1
-p_values.to_json(os.path.join("./p_values2.json"))
+# p_values = pd.DataFrame(p_values)
+# p_values[mask==True] = 1
+# p_values.to_json(os.path.join("./p_values2.json"))

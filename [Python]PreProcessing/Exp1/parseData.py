@@ -18,7 +18,6 @@ def split_list(l, n):
 folderName = glob.glob("./results/*")
 folderName.sort()
 
-
 datHash={"PDR":[],
          "PDR_baseline":[],
          "gazeX":[],
@@ -44,7 +43,6 @@ cfg={'THRES_DIFF':10,
      's_trg':[]
      }
 
-numOfSub = 0
 
 for iSub,subName in enumerate(folderName):
     fileName = glob.glob(os.path.join(subName+'/*.asc'))
@@ -149,7 +147,7 @@ for iSub,subName in enumerate(folderName):
     ############ # of switch #########################
     datHash['numOfSwitch'] = np.r_[datHash['numOfSwitch'], tmp_numOfSwitch]
     
-    datHash['sub'] = np.r_[datHash['sub'],np.ones(len(events_queue))*(numOfSub+iSub+1)]
+    datHash['sub'] = np.r_[datHash['sub'],np.ones(len(events_queue))*(iSub+1)]
     # datHash['numOfBlink'] = np.r_[datHash['numOfBlink'], np.array(event_data['numOfEBLINK'])]
     # datHash['numOfSaccade'] = np.r_[datHash['numOfSaccade'], np.array(event_data['numOfESACC'])]
     # datHash['ampOfSaccade'] = np.r_[datHash['ampOfSaccade'], np.array(event_data['ampOfESACC'])]
