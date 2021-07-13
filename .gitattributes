@@ -1,1 +1,3 @@
-*.asc linguist-vendored=true
+[Python]PreProcessing/Exp1/results/* linguist-vendored
+
+[Python]PreProcessing/Exp2/results/* linguist-vendored
