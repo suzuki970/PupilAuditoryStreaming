@@ -54,8 +54,7 @@ cfg={
 
 saveFileLocs = 'data/'
 
-# f = open(os.path.join(str(saveFileLocs + 'data_original_normalized.json')))
-f = open(os.path.join(str(saveFileLocs + 'data_original20210409.json')))
+f = open(os.path.join(str(saveFileLocs + 'data_original.json')))
 dat = json.load(f)
 f.close()
 
@@ -85,35 +84,6 @@ mmName = list(dat.keys())
 
 for mm in mmName:
     dat[mm] = [d for i,d in enumerate(dat[mm]) if not i in rejectNum]
-
-################## reject subject (N < 40%) ##########################
-# reject=[]
-# NUM_TRIAL = 80
-# numOftrials = []
-# numOftrials_res = []
-# for iSub in np.arange(1,int(max(dat['sub']))+1):
-#     # if rejectFlag[iSub-1]:
-#     #     reject.append(iSub)
-#     ind0 = np.argwhere((np.array(dat['sub'])==iSub) & (np.array(dat['responses'])==0))
-#     ind1 = np.argwhere((np.array(dat['sub'])==iSub) & (np.array(dat['responses'])==1))
-#     ind = np.argwhere((np.array(dat['sub'])==iSub))
-    
-#     numOftrials.append(len(ind0)+len(ind1))
-#     numOftrials_res.append([len(ind0),len(ind1)])
-    
-#     if min(numOftrials_res[iSub-1]) < (len(ind0)+len(ind1))/2 * 0.4:
-#             reject.append(iSub)
-#     if (len(ind0)+len(ind1)) < NUM_TRIAL * 0.4:
-#             reject.append(iSub)
-            
-# reject = np.unique(reject)
-# print('# of trials = ' + str(numOftrials))
-
-# rejectSub = [i for i,d in enumerate(dat['sub']) if d in reject]
-# print('rejected subject = ' + str(reject))
-# for mm in mmName:
-#     dat[mm] = [d for i,d in enumerate(dat[mm]) if not i in rejectSub]
-
     
 ################## Tertile ##########################
 diam = np.array(dat['PDR'].copy())
@@ -144,12 +114,6 @@ for iSub in np.arange(1,max(dat['sub'])+1):
 dat['responses_sorted'] = res.tolist()
 dat['RT_sorted'] = rt.tolist()
 
-# plt.figure()
-# for i in np.arange(1,6):
-#     ind = np.argwhere(np.array(dat['tertile']) == i).reshape(-1)
-#     yy = [s for i,s in enumerate(dat['responses_sorted']) if i in ind]
-#     plt.plot(i,np.mean(yy),'o',markersize=10)
-    # plt.plot(np.repeat(i,len(yy)),np.array(yy),'o',markersize=5)
 
 dat['PDR_size_sorted'] = [np.mean(p) for p in diam.tolist()]
 dat['PDR_baseline'] = re_sampling(np.array(dat['PDR_baseline']),
@@ -165,38 +129,10 @@ responses_zscored = []
 
 for iSub in np.arange(1,max(dat['sub'])+1):
     ind = np.argwhere(np.array(dat['sub']) == iSub).reshape(-1)
-    # ave = np.mean(np.array(dat['responses_sorted'])[ind])
     responses_zscored = np.r_[responses_zscored,
                               sp.zscore( np.array(dat['responses_sorted'])[ind])]
-
-# dat['responses_sorted'][ind] = sp.zscore( np.array(dat['responses_sorted'])[ind])
-# for i in np.arange(1,6):
-#     ind = np.argwhere((np.array(dat['tertile']) == i) & 
-#                       (np.array(dat['sub']) == iSub)).reshape(-1)
-#     # a = len(np.argwhere(np.array(dat['responses_sorted'])[ind] == 0))
-#     # b = len(np.argwhere(np.array(dat['responses_sorted'])[ind] == 1))      
-#     # Z = 1/sym.integrate(((1 - theta)**a) * theta ** b, (theta, 0, 1))
-#     # y = Z * ((theta ** b)*((1 - theta) ** a))
-#     # EAP = sym.integrate(theta * y, (theta, 0, 1))
-#     # log_f = sym.log(y)
-#     # eq = sym.Eq(sym.diff(log_f), 0)
-#     # MAP = sym.solveset(eq).args[0]
-#     theta_hat['hat'].append(np.mean(np.array(dat['responses_sorted'])[ind])-ave)
-#     theta_hat['sub'].append(int(iSub))
-#     theta_hat['tertile'].append(int(i))
     
 dat['responses_sorted'] = responses_zscored
-plt.figure()
-for i in np.arange(1,6):
-    ind = np.argwhere(np.array(dat['tertile']) == i).reshape(-1)
-    yy = [s for i,s in enumerate(dat['responses_sorted']) if i in ind]
-    plt.plot(i,np.mean(yy),'o',markersize=10)
-    # plt.plot(np.repeat(i,len(yy)),np.array(yy),'o',markersize=5)
-plt.figure()
-for i in np.arange(1,6):
-    ind = np.argwhere(np.array(dat['tertile']) == i).reshape(-1)
-    yy = [s for i,s in enumerate(dat['RT_sorted']) if i in ind]
-    plt.plot(i,np.mean(yy),'o',markersize=10)
 
 mmName = list(dat.keys())
 for mm in mmName:
@@ -213,7 +149,28 @@ del dat["gazeX"], dat["gazeY"]
 del dat['PDR'],dat['RT']
 del dat['PDR_baseline']
 
-with open(os.path.join(saveFileLocs+"data_tertile20210610.json"),"w") as f:
-        json.dump(dat,f)
+################## data plot ##########################
+
+import pandas as pd
+df = pd.DataFrame()
+df['sub'] = dat['sub']
+df['tertile'] = dat['tertile']
+df['PDR'] = dat['PDR_size_sorted']
+df['responses'] = dat['responses_sorted']
+
+df = df.groupby(['sub', 'tertile']).mean()
+
+numOfSub = len(np.unique(dat['sub']))
+
+plt.figure()
+for i in np.arange(1,6):
+    plt.plot(i, df.loc[(slice(None),i), 'responses'].values.mean(), marker='o', markersize=5, lw=1.0, zorder=10)
+    plt.errorbar(i, df.loc[(slice(None),i), 'responses'].values.mean(), 
+                 yerr = df.loc[(slice(None),i), 'responses'].values.std()/np.sqrt(numOfSub), 
+                 xerr=None, fmt="o", ms=2.0, elinewidth=1.0, ecolor='k', capsize=6.0)
+plt.title('Tertile')
+
+# with open(os.path.join(saveFileLocs+"data_tertile20210610.json"),"w") as f:
+#         json.dump(dat,f)
 # with open(os.path.join(saveFileLocs+"data_tertile.json"),"w") as f:
 #      json.dump(theta_hat,f)      

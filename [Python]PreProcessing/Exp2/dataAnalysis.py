@@ -31,13 +31,9 @@ cfg={
 'THRES_DIFF':0.04
 # 'THRES_DIFF':0.3 
 }
-# saveFileLocs = '/Users/yuta/Desktop/e1_endogenous_Switching/'
-saveFileLocs = 'data/'
-# saveFileLocs = '/Users/yuta/Desktop/Pxx_auditoryIllusion/e1_endogenous_Switching/'
 
-# f = open(os.path.join(str(saveFileLocs + 'data_original_normalized.json')))
-f = open(os.path.join(str(saveFileLocs + 'data_original20210409.json')))
-# f = open(os.path.join(str(saveFileLocs + 'data_original.json')))
+saveFileLocs = 'data/'
+f = open(os.path.join(str(saveFileLocs + 'data_original.json')))
 dat = json.load(f)
 f.close()
 
@@ -273,61 +269,12 @@ ave = 1-(np.array(numOftrials)/np.array(original_numOfTrial))
 
 print('rejected num ave = ' + str(round(np.mean(ave),3)) + ', sd = ' + str(round(np.std(ave),3)))
 
-################## Tertile ##########################
+################## Baseline ##########################
 diam = np.array(dat['PDR'].copy())
 diam = np.mean(diam[:,-1000:],axis=1).reshape(len(diam),1)
 
 dat['PDR_size'] = [np.mean(p) for p in diam.tolist()]
 
-dat['tertile'] = []
-res = np.array(dat['responses'].copy())
-
-for iSub in np.arange(1,max(dat['sub'])+1):
-    ind_sub = np.argwhere(np.array(dat['sub']) == iSub).reshape(-1)
-    
-    tmp_res = res[ind_sub].copy()
-    tmp_PDR = diam[ind_sub,].copy()
-     
-    aftSort = np.argsort(np.mean(tmp_PDR,axis=1))
-    
-    res[ind_sub] = tmp_res[aftSort].copy()    
-    diam[ind_sub,] = tmp_PDR[aftSort,].copy()
-    
-    x = list(split_list(tmp_PDR.tolist(),5))
-    for i,xVal in enumerate(x):
-        dat['tertile'] = np.r_[dat['tertile'],np.ones(len(xVal))*(i+1)]
-
-dat['responses_sorted'] = res.tolist()
-
-plt.figure()
-for i in np.arange(1,6):
-    ind = np.argwhere(np.array(dat['tertile']) == i).reshape(-1)
-    yy = [s for i,s in enumerate(dat['responses_sorted']) if i in ind]
-    plt.plot(i,np.mean(yy),'o')
-
-plt.figure(figsize=(10.0, 6.5))
-plt.rcParams["font.size"] = 28
-plt.rcParams["font.family"] = "Times New Roman"
-plt.title('Pupil size around task response',fontsize=30)
-x = np.linspace(cfg['TIME_START'],cfg['TIME_END'],np.array(dat['PDR_baseline']).shape[1])
-ind = np.argwhere(np.array(dat['responses']) == 0).reshape(-1)
-plt.plot(x,np.mean(np.array(dat['PDR_baseline'])[ind,:],axis=0),label="unswitched")
-plt.plot(x,np.mean(np.array(dat['PDR_baseline']),axis=0))
-
-ind = np.argwhere(np.array(dat['responses']) == 1).reshape(-1)
-plt.plot(x,np.mean(np.array(dat['PDR_baseline'])[ind,:],axis=0),label="switched")
-plt.legend()
-
-# # plt.subplot(1,2,2)
-# plt.vlines(-np.mean(np.array(dat['RT'])), -0.5, 0.5, "black", linestyles='dashed')
-# # plt.vlines(cfg['WID_BASELINE'][0], -0.5, 0.5, "red", linestyles='dashed')
-# # plt.vlines(cfg['WID_BASELINE'][1], -0.5, 0.5, "red", linestyles='dashed')
-# plt.ylim(-0.5,0.2)
-# plt.ylabel('Pupil size [z-scored]')
-# plt.xlabel('Time [sec]')
-
-# 
-# plt.savefig(saveFileLocs+"pupilRes.pdf")
 
 ################# trial number ##########################
 dat['numOfTrial'] = np.zeros(y.shape[0])
@@ -354,42 +301,6 @@ dat['numOfTrial'] = dat['numOfTrial'].tolist()
 dat['PDRder'] = re_sampling(dat['PDR'],30).tolist()
 dat['PDRder'] = (np.diff(dat['PDRder'])*(30/4)).tolist()
 
-
-################## Data plot ##########################
-# plt.figure(figsize=(12, 15))
-# plt.rcParams["font.size"] = 18
-# conditionName = ['no switch','switch' ]
-# lineCol = ['k','r']
-# for iSub in np.arange(1,max(dat['sub'])+1):
-#     plt.subplot(round(max(dat['sub'])/2)+1,2,iSub)
-    
-#     for iAns in np.arange(2):
-#         ind = [i for i,c in enumerate(dat['condition_frame']) if dat['sub'][i] == iSub and c == iAns]
-#         if len(ind) > 0:
-#             plt.plot(y[ind].T,alpha=0.1)
-#             plt.plot(np.mean(y[ind],axis=0), color=lineCol[iAns], label = conditionName[iAns])
-        
-#     # plt.xlim([0,cfg['TIME_END']])
-#     # plt.ylim([-cfg['THRES_DIFF'] ,cfg['THRES_DIFF'] ])
-#     plt.xlabel('Time from response queue')
-# plt.legend()
-
-# x = np.linspace(cfg['TIME_START'],cfg['TIME_END'],y.shape[1]-1)
-# plt.figure(figsize=(12, 6))
-# plt.rcParams["font.size"] = 18
-# plt.subplot(1,2,1)
-# plt.plot(x,np.diff(y).T)
-# plt.xlim([cfg['TIME_START'],cfg['TIME_END']])
-# plt.ylim([-cfg['THRES_DIFF'] ,cfg['THRES_DIFF'] ])
-# plt.xlabel('Time from response queue')
-
-# x = np.linspace(cfg['TIME_START'],cfg['TIME_END'],y.shape[1])
-# plt.subplot(1,2,2)
-# plt.plot(x,y.T)
-# plt.xlim([cfg['TIME_START'],cfg['TIME_END']])
-# plt.xlabel('Time from response queue')
-# plt.ylabel('Changes in pupil size')
-
 dat['PDR_size_sorted'] = [np.mean(p) for p in diam.tolist()]
 dat['PDR'] = re_sampling(y,(cfg['TIME_END']-cfg['TIME_START'])*100).tolist()
 
@@ -400,22 +311,40 @@ for mm in mmName:
     if not isinstance(dat[mm],list):
         dat[mm] = dat[mm].tolist()
         
-A = []
-B = []
-for iSub in np.unique(np.array(dat['sub'])):
-    ind = np.argwhere((np.array(dat['responses']) == 0) & 
-                      (np.array(dat['sub']) == iSub)).reshape(-1)
-    A.append(np.mean(np.array(dat['PDR_size'])[ind]))
-    
-    ind = np.argwhere((np.array(dat['responses']) == 1) & 
-                      (np.array(dat['sub']) == iSub)).reshape(-1)
-    B.append(np.mean(np.array(dat['PDR_size'])[ind]))
-         
+################ data plot ##########################
+
+import pandas as pd
+df = pd.DataFrame()
+df['sub'] = dat['sub']
+df['PDR'] = dat['PDR_size']
+df['responses'] = dat['responses']
+df['taskTimeLen'] = dat['taskTimeLen']
+df = df.groupby(['sub', 'responses']).mean()
+
 from scipy import stats
-print(stats.ttest_rel(np.array(A), np.array(B)))
+print(stats.ttest_rel(df.loc[(slice(None),0), 'PDR'].values, df.loc[(slice(None),1), 'PDR'].values))
+
+xLab = ['unswitch','switch']
+numOfSub = len(np.unique(dat['sub']))
+
+plt.figure()
+for i in range(2):
+    plt.plot(xLab[i], df.loc[(slice(None),i), 'PDR'].values.mean(), marker='o', markersize=5, lw=1.0, zorder=10)
+    plt.errorbar(i, df.loc[(slice(None),i), 'PDR'].values.mean(), 
+                  yerr = df.loc[(slice(None),i), 'PDR'].values.std()/np.sqrt(numOfSub), 
+                  xerr=None, fmt="o", ms=2.0, elinewidth=1.0, ecolor='k', capsize=6.0)
+plt.title('Baseline pupil size')
+ 
+plt.figure()
+for i in range(2):
+    plt.plot(xLab[i], df.loc[(slice(None),i), 'taskTimeLen'].values.mean(), marker='o', markersize=5, lw=1.0, zorder=10)
+    plt.errorbar(i, df.loc[(slice(None),i), 'taskTimeLen'].values.mean(), 
+                  yerr = df.loc[(slice(None),i), 'taskTimeLen'].values.std()/np.sqrt(numOfSub), 
+                  xerr=None, fmt="o", ms=2.0, elinewidth=1.0, ecolor='k', capsize=6.0)
+plt.title('Task duration')
 
 
 ################## Data save ##########################
-with open(os.path.join(saveFileLocs+"data20210610.json"),"w") as f:
-        json.dump(dat,f)
+# with open(os.path.join(saveFileLocs+"data20210610.json"),"w") as f:
+#         json.dump(dat,f)
         

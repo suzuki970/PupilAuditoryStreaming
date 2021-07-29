@@ -110,8 +110,7 @@ for i in np.arange(1,6):
     ind = np.argwhere(dat['tertile'] == i).reshape(-1)
     print('Total # of trials (bin:' + str(i) + ') = ' + str(len(ind)))
 
-################## data plot ##########################
-    
+
 dat['PDR_size_sorted'] = [np.mean(p) for p in diam.tolist()]
 dat['PDR_baseline'] = re_sampling(np.array(dat['PDR_baseline']),
                                   (cfg['TIME_END']-cfg['TIME_START'])*100).tolist()
@@ -126,5 +125,26 @@ del dat["Blink"], dat["Saccade"], dat["mSaccade"]
 del dat["gazeX"], dat["gazeY"]
 del dat['RT']
 
-with open(os.path.join(saveFileLocs+"data_tertile.json"),"w") as f:
-        json.dump(dat,f)
+################## data plot ##########################
+
+import pandas as pd
+df = pd.DataFrame()
+df['sub'] = dat['sub']
+df['tertile'] = dat['tertile']
+df['PDR'] = dat['PDR_size_sorted']
+df['numOfSwitch'] = dat['numOfSwitch_sorted']
+
+df = df.groupby(['sub', 'tertile']).mean()
+
+numOfSub = len(np.unique(dat['sub']))
+
+plt.figure()
+for i in np.arange(1,6):
+    plt.plot(i, df.loc[(slice(None),i), 'numOfSwitch'].values.mean(), marker='o', markersize=5, lw=1.0, zorder=10)
+    plt.errorbar(i, df.loc[(slice(None),i), 'numOfSwitch'].values.mean(), 
+                 yerr = df.loc[(slice(None),i), 'numOfSwitch'].values.std()/np.sqrt(numOfSub), 
+                 xerr=None, fmt="o", ms=2.0, elinewidth=1.0, ecolor='k', capsize=6.0)
+plt.title('Tertile')
+
+# with open(os.path.join(saveFileLocs+"data_tertile.json"),"w") as f:
+#         json.dump(dat,f)

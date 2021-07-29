@@ -28,8 +28,8 @@ datHash={"PDR":[],
          "RT":[],
          "Blink" : [],
          "Saccade":[],
-         "rejectFlag":[]
-         # "numOfBlink":[],
+         "rejectFlag":[],
+         "taskTimeLen":[]
          # "numOfSaccade":[],
          # "ampOfSaccade":[]
           }
@@ -40,9 +40,9 @@ cfg={'THRES_DIFF':10,
      'WID_FILTER':[],
      'mmFlag':False,
      'normFlag':True,
-     's_trg':[]
+     's_trg':[],
+     'visualization':False
      }
-
 
 for iSub,subName in enumerate(folderName):
     fileName = glob.glob(os.path.join(subName+'/*.asc'))
@@ -68,7 +68,7 @@ for iSub,subName in enumerate(folderName):
 
     events_queue = [[int(int(e[0])- initialTimeVal),e[1]] for e in events['MSG'] if e[1] == 'task_queue']
     events_response = [[int(int(e[0])- initialTimeVal),e[1]] for e in events['MSG'] if e[1] == '0' or e[1] == '1' or e[1] == '2' or e[1] == '3' or e[1] == '4' or e[1] == '5']
-    
+ 
     rejectNum_res = []
     rejectNum_queue = []
     for i in np.arange(len(events_queue)-1):
@@ -89,6 +89,20 @@ for iSub,subName in enumerate(folderName):
     events_response = [p for i,p in enumerate(events_response) if not i in rejectNum_res ]
     events_queue = [p for i,p in enumerate(events_queue) if not i in rejectNum_queue ]
   
+       
+    flg = True
+    for iTrial in np.arange(len(events_queue)):
+        for st in start_trial:
+            if abs(int(events_queue[iTrial][0])-int(st[0])) < 9500:
+                datHash["taskTimeLen"].append(int(events_queue[iTrial][0])-int(st[0]))
+                flg = False
+        if flg:
+            datHash["taskTimeLen"].append(int(events_queue[iTrial][0])-int(events_response[iTrial-1][0]))
+        else:
+            flg = True
+    
+            
+
     ### for heatmap, blink and saccade
     endISI = [[int(int(e[0])- initialTimeVal),e[1]] for e in events['MSG'] if e[1] == 'ISI']
     event_data = {'EFIX':[],'ESACC':[],'EBLINK':[]}
