@@ -1,2 +1,3 @@
 [Python]PreProcessing/Exp1/results/* linguist-documentation
 [Python]PreProcessing/Exp2/results/* linguist-documentation
+*.asc linguist-vendored
