@@ -43,6 +43,7 @@ cfg={
 }
 
 saveFileLocs = './data/'
+saveFileLocs = '/Users/yutasuzuki/Desktop/Python/Pxx_auditoryIllusion/e1_endogenous_Switching/analysis/data/'
 
 ## ########## data loading ###################
 f = open(os.path.join(str(saveFileLocs + 'data_original.json')))
@@ -244,8 +245,8 @@ for indSwitch in np.arange(2):
     
 events['numOfTrial'] = events['numOfTrial'].tolist()
 
-with open(os.path.join(saveFileLocs + "PDPCevents.json"),"w") as f:
-        json.dump(events,f)
+# with open(os.path.join(saveFileLocs + "PDPCevents.json"),"w") as f:
+#         json.dump(events,f)
         
 numOfSub = len(np.unique(events['sub']))
 plt.figure(figsize=(6,8))

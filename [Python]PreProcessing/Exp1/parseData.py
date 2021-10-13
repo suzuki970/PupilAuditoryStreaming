@@ -38,8 +38,8 @@ cfg={'THRES_DIFF':10,
      'WID_ANALYSIS':4,
      'useEye':2,
      'WID_FILTER':[],
-     'mmFlag':False,
-     'normFlag':True,
+     'mmFlag':True,
+     'normFlag':False,
      's_trg':[],
      'visualization':False
      }
@@ -178,5 +178,10 @@ for mm in mmName:
     if not isinstance(datHash[mm],list):
         datHash[mm] = datHash[mm].tolist()
 
-with open(os.path.join("./data/data_original.json"),"w") as f:
+if cfg['mmFlag']:
+    with open(os.path.join("./data/data_original_mm.json"),"w") as f:
+        json.dump(datHash,f)
+
+else:
+    with open(os.path.join("./data/data_original.json"),"w") as f:
         json.dump(datHash,f)

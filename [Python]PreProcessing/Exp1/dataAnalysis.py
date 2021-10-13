@@ -41,15 +41,19 @@ cfg={
 'WID_FILTER':np.array([]),
 'METHOD':1, #subtraction
 'FLAG_LOWPASS':False,
-'THRES_DIFF':0.04
+'THRES_DIFF':0.04,
+'mmFlag':True
 # 'THRES_DIFF':300
 }
 
 saveFileLocs = 'data/'
 
 ## ########## data loading ###################
+if cfg['mmFlag']:
+    f = open(os.path.join(str(saveFileLocs + 'data_original_mm.json')))
+else:
+    f = open(os.path.join(str(saveFileLocs + 'data_original.json')))
 
-f = open(os.path.join(str(saveFileLocs + 'data_original.json')))
 dat = json.load(f)
 f.close()
 
@@ -526,5 +530,6 @@ for i in range(3):
                  xerr=None, fmt="o", ms=2.0, elinewidth=1.0, ecolor='k', capsize=6.0)
 plt.title('Task duration')
  
-# with open(os.path.join(saveFileLocs + "data20210610.json"),"w") as f:
-#         json.dump(dat,f)
+if cfg['mmFlag']:
+    with open(os.path.join(saveFileLocs + "data_mm.json"),"w") as f:
+            json.dump(dat,f)

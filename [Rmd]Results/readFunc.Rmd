@@ -232,6 +232,30 @@ dispLineGraph <- function(ribbondata, config, factors,numOfSub = 0){
   
   return(p)
 }
+
+dispBoxGraph <- function(ribbondata, config, factors,numOfSub = 0){
+  
+  eval(parse(text=paste("p <- ggplot(ribbondata,aes(x = ", factors[1],", y = data_y))", sep="")))
+  eval(parse(text=paste("p = p + geom_boxplot(width=0.3)", sep="")))
+  # eval(parse(text=paste("p = p + geom_jitter(width = 0.1)", sep="")))
+
+   if(!is.null(config$grCol)){
+    p = p + scale_color_manual(values = config$grCol)
+  }
+  if(!is.null(config$title)){
+    p = p + ggtitle(config$title)
+  }
+   p = p +  
+    xlab(config$label_x) + ylab(config$label_y) +
+    theme(
+      axis.ticks.x = element_blank(),
+      axis.line.x = element_blank()
+    )
+  
+  return(p)
+}
+
+
 makeSigPair <- function(forDrawingPost) {
   
   sigPairA = NULL

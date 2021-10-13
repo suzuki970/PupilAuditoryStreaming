@@ -26,20 +26,27 @@ E-mail: yuuta.suzuki.fc@hco.ntt.co.jp
 ```{r child="readFunc.Rmd"}
 ```
 
-## Figure 1
+## Figure 1 Procedure
 ```{r, echo=FALSE, out.width = '100%'}
 knitr::include_graphics("./figure/fig1.png")
 ```
 
 Fig. 1. Experimental design. (A) Time configuration of the ABA_ pattern. (B) Consecutive auditory tone sequences which can produce two different patterns of a single galloping or two isolated rhythms. (C) Averaged trial numbers among responses in Experiments 1 and 2 (D) Participants listened to a series of two tones with different frequencies (see ‘Methods’). Participants were asked to count the number of perceptual alternations in Experiment 1 (i.e., number of black arrows in top panel; the trace here is an example for explanation purposes) or report whether they experienced a perceptual alternation in Experiment 2 while a narrow fixation cross was presented. Once the fixation cross became thicker (i.e., response cue), participants pressed a corresponding button depending on the task (i.e., number keys from 0 to 5 in Experiment 1 and yes/no in Experiment 2). All pupil changes illustrated here are averaged data across participants and alternation cases from Experiment 1. To avoid the effect of the motor responses (i.e., button press) or its preparation on the pupil size, the baseline pupil size was defined as the mean pupil size over -1000 to 0 ms to the response cue onset (period marked in red in the graph), and was labeled according to the subsequent participants’ task answer (the red line with arrows) for subsequent baseline pupil size and cross-correlation analysis. 
 
-## figure 2
+## figure 2 Exp.1
 ```{r, message=FALSE, echo=FALSE,warning=FALSE,include=FALSE}
 
 countFigNum = 1
+mmFlg = TRUE
+figOutput = TRUE
+nsFlag = FALSE
 
 #### Figure 1A ####
-load("./data/Exp1/figure2.rda")
+if(mmFlg){
+  load("./data/Exp1/figure2_mm.rda")
+}else{
+  load("./data/Exp1/figure2.rda")
+}
 
 numOfsub = length(unique(data_res_tonic$sub))
 
@@ -50,23 +57,36 @@ data_res_tonic$Size = NULL
 config = list(alpha = 0.4,
               stride = 0.1,
               label_x = "# of switch",
-              label_y = "Baseline Pupil size  \n [z-scored]",
-              title = "Tertile",
+              title = "",
               grCol = c("#F8766D","#00BA38","#619CFF")
 )
+if(mmFlg){
+  config$label_y = "Baseline Pupil size  \n [z-scored]"
+}else{
+  config$label_y = "Baseline Pupil size  \n [mm]"
+}
 anovakun(data_res_tonic,"sA",long=T, peta=T)
-# sigPair = makeSigPair(forDrawingPost)
+sigPair = makeSigPair(forDrawingPost)
 
-p = dispLineGraph(data_res_tonic,config,c("numOfSwitch"))
+# p = dispLineGraph(data_res_tonic,config,c("numOfSwitch"))
+p = dispBoxGraph(data_res_tonic,config,c("numOfSwitch"))
 
-config$ylim = round(seq(-0.3,0.4,0.1),2)
-config$ylim_stride = 0.1
-config$xlim = round(seq(1,3,1),2)
-config$xlim_stride = 0.5
 
+if(mmFlg){
+  p <- drawSignificance(p,sigPair,8,0.05,nsFlag)
+  config$ylim = round(seq(5,8,1),2)
+  config$ylim_stride = 0.2
+  config$xlim = round(seq(1,3,1),2)
+  config$xlim_stride = 0.5
+}else{
+  p <- drawSignificance(p,sigPair,0.4,0.05,nsFlag)
+  config$ylim = round(seq(-0.8,1.2,0.2),2)
+  config$ylim_stride = 0.1
+  config$xlim = round(seq(1,3,1),2)
+  config$xlim_stride = 0.5
+}
 p = setEmptyStyle(p,config)
 
-# p <- drawSignificance(p,sigPair,0.4,0.05,nsFlag)
 
 eval(parse(text=paste("p", countFigNum ,"=p", sep="")))
 countFigNum = countFigNum+1
@@ -117,6 +137,7 @@ anovaData = data_tertile
 anovaData$Size_sorted = NULL
 # anovakun(anovaData,"sA",long=T, peta=T)
 # sigPair = makeSigPair(forDrawingPost)
+
 p <- dispLineGraph(data_tertile,config,c("Tertile"))+
   geom_line(data = data_curve,aes(x=x,y=yy),color='gray')+
   ggtitle("Normalized Baseline pupil size")+
@@ -242,25 +263,29 @@ countFigNum = countFigNum+1
 ```{r, message=FALSE, echo=FALSE, warning=FALSE,fig.width = 10, fig.height = 5}
 p = combineGraphs(seq(1,countFigNum-1),'p',NULL)
 plot(p)
-# width_fig=5
-# height_fig=5
-# CairoFonts(regular = "Times","Times")
-# CairoPDF(file="./figure/Fig2A",
-#          width=width_fig, height=height_fig)
-# print(p1)
-# dev.off()
-# width_fig=5
-# height_fig=5
-# CairoFonts(regular = "Times","Times")
-# CairoPDF(file="./figure/Fig2B",
-#          width=width_fig, height=height_fig)
-# print(p2)
-# dev.off()
+
+if(figOutput){
+  width_fig=5
+  height_fig=5
+  CairoFonts(regular = "Times","Times")
+  CairoPDF(file="./figure/Fig2A",
+           width=width_fig, height=height_fig)
+  print(p1)
+  dev.off()
+  width_fig=5
+  height_fig=5
+  CairoFonts(regular = "Times","Times")
+  CairoPDF(file="./figure/Fig2B",
+           width=width_fig, height=height_fig)
+  print(p2)
+  dev.off()
+}
+
 ```
 
 Fig. 2. Baseline pupil size in the number of perceptual alternations. (A) Averaged baseline pupil size from -1000 ms to the response cue onset (see ‘Methods’). (B) Relationship between baseline pupil size and number of perceptual alternations classified by equal size bins. Asterisks (*) indicate statistical significance at *p<0.05, and **p<0.01. Error bars indicate the standard error of the mean.
 
-## figure 3
+## figure 3 Exp.2
 ```{r, message=FALSE, echo=FALSE, warning=FALSE,include=FALSE}
 
 countFigNum=1
@@ -269,7 +294,11 @@ go1 = c("unswitch","switch")
 FONT_SIZE = 18
 
 #### Figure4A(response) ####
-load("./data/Exp2/figure3.rda")
+if(mmFlg){
+  load("./data/Exp2/figure3_mm.rda")
+}else{
+  load("./data/Exp2/figure3.rda")
+}
 data_res$Responses = go1[data_res$Responses+1]
 data_res$Responses = factor(data_res$Responses,levels = go1)
 
@@ -278,31 +307,54 @@ config = list(
   alpha = 0.4,
   stride = 0.1,
   label_x = "",
-  label_y = "Pupil size[z-score]",
-  title = "Tertile"
+  title = ""
 )
-
+if(mmFlg){
+  config$label_y = "Baseline Pupil size  \n [z-scored]"
+}else{
+  config$label_y = "Baseline Pupil size  \n [mm]"
+}
 data_res = data_res[data_res$type == 'size',]
 data_res$type = NULL
 
-data_res$sub = subName[data_res$sub]
-p <- dispLineGraph(data_res,config,c("Responses"))
+anovakun(data_res,"sA",long=T, peta=T)
+# sigPair = makeSigPair(forDrawingSigANOVA)
 
-config$ylim = round(seq(-0.3,0.1,0.1),2)
-config$ylim_stride = 0.05
-config$xlim = round(seq(1,2,1),2)
-config$xlim_stride = 0.5
+data_res$sub = subName[data_res$sub]
+p = dispBoxGraph(data_res,config,c("Responses"))
+
+sigPair = NULL
+sigPair = cbind(sigPair,"unswitch")
+sigPair = cbind(sigPair,"<")
+sigPair = cbind(sigPair,"switch")
+sigPair = cbind(sigPair,forDrawingSigANOVA[2,]['p.col'])
+
+# p <- dispLineGraph(data_res,config,c("Responses"))
+
+if(mmFlg){ 
+  p <- drawSignificance(p,sigPair,8,0.05,nsFlag)
+  config$ylim = round(seq(5,8,1),2)
+  config$ylim_stride = 0.2
+  config$xlim = round(seq(1,2,1),2)
+  config$xlim_stride = 0.5
+}else{
+  config$ylim = round(seq(-0.3,0.1,0.1),2)
+  config$ylim_stride = 0.05
+  config$xlim = round(seq(1,2,1),2)
+  config$xlim_stride = 0.5
+}
 
 p = setEmptyStyle(p,config)
 
 p <- p + theme(
   legend.position = 'none'
 )
+
 eval(parse(text=paste("p", countFigNum ,"=p", sep="")))
 countFigNum = countFigNum+1
 
 # #### Figure4B(Tertile) #####
-data_tertile=fromJSON(file="./data/Exp2/data_tertile20210610.json")
+data_tertile=fromJSON(file="../[Python]PreProcessing/Exp2/data/data_tertile20210610.json")
 data_tertile = data.frame(
   sub = data_tertile$sub,
   Tertile = data_tertile$tertile,
@@ -372,25 +424,27 @@ countFigNum = countFigNum+1
 p = combineGraphs(seq(1,countFigNum-1),'p',NULL)
 plot(p)
 
-# width_fig=5
-# height_fig=5
-# CairoFonts(regular = "Times","Times")
-# CairoPDF(file="./figure/Fig3A",
-#          width=width_fig, height=height_fig)
-# print(p1)
-# dev.off()
-# width_fig=5
-# height_fig=5
-# CairoFonts(regular = "Times","Times")
-# CairoPDF(file="./figure/Fig3B",
-#          width=width_fig, height=height_fig)
-# print(p2)
-# dev.off()
+if(figOutput){
+  width_fig=5
+  height_fig=5
+  CairoFonts(regular = "Times","Times")
+  CairoPDF(file="./figure/Fig3A",
+           width=width_fig, height=height_fig)
+  print(p1)
+  dev.off()
+  width_fig=5
+  height_fig=5
+  CairoFonts(regular = "Times","Times")
+  CairoPDF(file="./figure/Fig3B",
+           width=width_fig, height=height_fig)
+  print(p2)
+  dev.off()
+}
 ```
 
 Fig. 3. Results of Experiment 2. (A) Averaged baseline pupil size from -1000 ms to the response cue onset (see ‘Methods’). (B) Relationship between baseline pupil size and probability of perceptual alternation classified by equal size bins. The asterisk (*) indicates statistical significance at p < 0.05. Error bars indicate the standard error of the mean.
 
-## figure 4
+## figure 4 PDPC events
 ```{r, message=FALSE, echo=FALSE, warning=FALSE,include=FALSE}
 
 g2 = c('unswitch','switch')
@@ -589,31 +643,33 @@ countFigNum = countFigNum+1
 # ###### plot ###### 
 p = combineGraphs(seq(1,countFigNum-1),'p',NULL)
 plot(p)
-# width_fig=10
-# height_fig=15
-# CairoFonts(regular = "Times","Times")
-# CairoPDF(file="./figure/Figure4A",
-#          width=width_fig, height=height_fig)
-# print(p1)
-# dev.off()
-# 
-# width_fig=5
-# height_fig=5
-# CairoFonts(regular = "Times","Times")
-# CairoPDF(file="./figure/Figure4B",
-#          width=width_fig, height=height_fig)
-# print(p2)
-# dev.off()
+if(figOutput){
+  width_fig=10
+  height_fig=15
+  CairoFonts(regular = "Times","Times")
+  CairoPDF(file="./figure/Figure4A",
+           width=width_fig, height=height_fig)
+  print(p1)
+  dev.off()
+  
+  width_fig=5
+  height_fig=5
+  CairoFonts(regular = "Times","Times")
+  CairoPDF(file="./figure/Figure4B",
+           width=width_fig, height=height_fig)
+  print(p2)
+  dev.off()
+}
 ```
 
 Fig. 4. Pupil dilation/constriction rates in Experiments 1 and 2. (A) Raster plots of pupil dilation/constriction events around task responses. In the result of Experiment 1 (left panel of A), answer of 0 labeled as ‘no-alternation’ vs. more than 1 labeled as ‘alternation’. Black and white dots indicate the inflection point of pupil dilation and constriction in each single trial. (B) Average number of pupil dilation events within the time range from 0 to 4 s for alternation and no-alternation trials. Error bars indicate the standard error of the mean. The symbols and error bars indicate the mean and the standard error of the mean, respectively.
 
-## Figure 5
+## Figure 5 Cross-corr
 ```{r, message=FALSE, echo=FALSE, warning=FALSE,include=FALSE}
 countFigNum=1
 
 ## data loading ------------------------------------------------------------
-data=fromJSON(file="../[Python]PreProcessing/Exp1/data/data_cross_corr_trial.json")
+data=fromJSON(file="../[Python]PreProcessing/Exp1/data/data_cross_corr.json")
 
 # dataset --------------------------------------------------------------------
 dat <- list(matrix(unlist(data$raw),nrow=length(data$raw),byrow=T),
@@ -729,9 +785,9 @@ print(t.test(maxLag[maxLag$condition == 'raw',]$data_y, mu=0, alternative="less"
 # sigPair = makeSigPair(forDrawingPost)
 # maxLag = maxLag[maxLag$condition == 'raw',]
 # p = dispBarGraph(maxLag,config,c("condition"))+
-  # geom_point(data=maxLag,aes(x=condition,y=data_y,group=sub))+
-  # ggtitle('(b) Lag')+
-  # theme(axis.text.x = element_text(angle = 30, hjust = 1))
+# geom_point(data=maxLag,aes(x=condition,y=data_y,group=sub))+
+# ggtitle('(b) Lag')+
+# theme(axis.text.x = element_text(angle = 30, hjust = 1))
 
 # p <- drawSignificance(p,sigPair,10,5,TRUE)
 
@@ -742,13 +798,13 @@ print(t.test(maxLag[maxLag$condition == 'raw',]$data_y, mu=0, alternative="less"
 # 
 # p = setEmptyStyle(p,config)
 # p = p +
-  # scale_y_continuous(breaks=round(seq(-20,5,5),2))+
-  # coord_cartesian(xlim=c(0.5,2.5),ylim=c(-25,10),expand=FALSE)+
-  # annotate(x=1, xend=2, y=-25, yend=-25, colour="black", lwd=0.5, geom="segment")+
-  # annotate(x=0.5, xend=0.5, y=-20, yend=5, colour="black", lwd=0.5, geom="segment")+
-  # theme(
-  #   axis.ticks = element_line(colour = "black",size = 0.5)
-  # )
+# scale_y_continuous(breaks=round(seq(-20,5,5),2))+
+# coord_cartesian(xlim=c(0.5,2.5),ylim=c(-25,10),expand=FALSE)+
+# annotate(x=1, xend=2, y=-25, yend=-25, colour="black", lwd=0.5, geom="segment")+
+# annotate(x=0.5, xend=0.5, y=-20, yend=5, colour="black", lwd=0.5, geom="segment")+
+# theme(
+#   axis.ticks = element_line(colour = "black",size = 0.5)
+# )
 # eval(parse(text=paste("p", countFigNum ,"=p", sep="")))
 # countFigNum = countFigNum+1
 
