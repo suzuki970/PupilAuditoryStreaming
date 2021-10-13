@@ -38,7 +38,7 @@ Fig. 1. Experimental design. (A) Time configuration of the ABA_ pattern. (B) Con
 
 countFigNum = 1
 mmFlg = TRUE
-figOutput = TRUE
+figOutput = FALSE
 nsFlag = FALSE
 
 #### Figure 1A ####
@@ -70,6 +70,7 @@ sigPair = makeSigPair(forDrawingPost)
 
 # p = dispLineGraph(data_res_tonic,config,c("numOfSwitch"))
 p = dispBoxGraph(data_res_tonic,config,c("numOfSwitch"))
+  # geom_line(aes(group=sub),alpha=0.2)
 
 
 if(mmFlg){
@@ -322,6 +323,8 @@ anovakun(data_res,"sA",long=T, peta=T)
 
 data_res$sub = subName[data_res$sub]
 p = dispBoxGraph(data_res,config,c("Responses"))
+  # geom_line(aes(group=sub),alpha=0.2)
+
 
 sigPair = NULL
 sigPair = cbind(sigPair,"unswitch")
@@ -451,7 +454,8 @@ g2 = c('unswitch','switch')
 countFigNum = 1
 
 #### data loading ------------------------------------------------------------
-data=fromJSON(file="../[Python]PreProcessing/Exp1/data/PDPCevents.json")
+# data=fromJSON(file="../[Python]PreProcessing/Exp1/data/PDPCevents.json")
+data=fromJSON(file="../[Python]PreProcessing/Exp1/data/PDPCevents_before2s.json")
 
 dat <- list(matrix(unlist(data$constriction),nrow=length(data$constriction),byrow=T),
             matrix(unlist(data$dilation),nrow=length(data$dilation),byrow=T))
@@ -500,7 +504,8 @@ ind_data_e1[ind_data_e1$numOfSwitch > length(g2)-2,]$numOfSwitch = length(g2)-1
 numOfSub_e1 = length(unique(ind_data_e1$sub))
 
 #### Exp2
-data=fromJSON(file="../[Python]PreProcessing/Exp2/data/PDPCevents.json")
+# data=fromJSON(file="../[Python]PreProcessing/Exp2/data/PDPCevents.json")
+data=fromJSON(file="../[Python]PreProcessing/Exp2/data/PDPCevents_before2s.json")
 
 dat <- list(matrix(unlist(data$constriction),nrow=length(data$constriction),byrow=T),
             matrix(unlist(data$dilation),nrow=length(data$dilation),byrow=T))
@@ -552,12 +557,12 @@ config = list(alpha = 0.4,
               label_y = "# of PD events",
               title = "")
 
-config$ylim = round(seq(0,2000,500),2)
-config$ylim_stride = 100
-config$xlim = round(seq(-2000,4000,1000),2)
-config$xlim_stride = 100
-
-p = setEmptyStyle(p,config)
+# config$ylim = round(seq(0,2000,500),2)
+# config$ylim_stride = 100
+# config$xlim = round(seq(-2000,4000,1000),2)
+# config$xlim_stride = 100
+# 
+# p = setEmptyStyle(p,config)
 p = p +
   scale_x_continuous(breaks=round(seq(-4000,4000,1000),2),labels=round(seq(-4,4,1),2))+
   xlab('Time[sec]')+ ylab('# trial')+
@@ -625,12 +630,12 @@ anovakun(data_anovaPC,"sAB",long=T, peta=T)
 p = dispLineGraph(data_anovaPD,config,c("exp","numOfSwitch"))+
   facet_grid(. ~ exp )
 
-config$ylim = round(seq(1.7,2.1,0.1),2)
-config$ylim_stride = 0.05
-config$xlim = round(seq(1,2,1),2)
-config$xlim_stride = 0.5
-
-p = setEmptyStyle(p,config)
+# config$ylim = round(seq(1.7,2.1,0.1),2)
+# config$ylim_stride = 0.05
+# config$xlim = round(seq(1,2,1),2)
+# config$xlim_stride = 0.5
+# 
+# p = setEmptyStyle(p,config)
 
 eval(parse(text=paste("p", countFigNum ,"=p", sep="")))
 countFigNum = countFigNum+1
