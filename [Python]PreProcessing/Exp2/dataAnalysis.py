@@ -1,10 +1,18 @@
+
+
+import sys
+import os
+import pprint
+
+sys.path.append('/Volumes/GoogleDrive/My Drive/PupilAnalysisToolbox/python/preprocessing/lib')
+pprint.pprint(sys.path)
+
 import numpy as np
 import matplotlib.pyplot as plt
 from pre_processing import pre_processing,re_sampling,getNearestValue
 from band_pass_filter import lowpass_filter
 from rejectBlink_PCA import rejectBlink_PCA
 import json
-import os
 from sklearn.decomposition import PCA
 import random
 import itertools
@@ -29,7 +37,7 @@ cfg={
 'METHOD':1, #subtraction
 'FLAG_LOWPASS':False,
 'THRES_DIFF':0.04,
-'mmFlag':False,
+'mmFlag':True,
 'normFlag':False
 # 'THRES_DIFF':0.3 
 }

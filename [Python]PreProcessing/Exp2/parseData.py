@@ -1,8 +1,16 @@
+
+import sys
+import os
+import pprint
+
+sys.path.append('/Volumes/GoogleDrive/My Drive/PupilAnalysisToolbox/python/preprocessing/lib')
+pprint.pprint(sys.path)
+
 import numpy as np
 import json
 from asc2array import asc2array
 import glob
-import os
+
 from pre_processing import re_sampling
 
 folderName = glob.glob("./results/*")
@@ -28,7 +36,7 @@ cfg={'THRES_DIFF':10,
      'WID_ANALYSIS':4,
      'useEye':2,
      'WID_FILTER':[],
-     'mmFlag':False,
+     'mmFlag':True,
      'normFlag':False,
      's_trg':[],
      'visualization':False

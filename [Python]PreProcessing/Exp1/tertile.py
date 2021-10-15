@@ -41,7 +41,7 @@ cfg={
 'FLAG_LOWPASS':False,
 'THRES_DIFF':0.04,
 'mmFlag':False,
-'normFlag':False
+'normFlag':True
 # 'THRES_DIFF':300
 }
 
@@ -133,6 +133,7 @@ del dat['PDR']
 del dat["Blink"], dat["Saccade"], dat["mSaccade"]
 del dat["gazeX"], dat["gazeY"]
 del dat['RT']
+del dat['PDR_baseline']
 
 ################## data plot ##########################
 

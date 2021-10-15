@@ -25,8 +25,8 @@ eTime = 5
 
 analysisWin = 0
 countFigNum=1
-mmFlg = FALSE
-auFlg = TRUE
+mmFlg = TRUE
+auFlg = FALSE
 
 saveLoc = "../../../[Python]PreProcessing/Exp1/data/"
 go1 = c("1", "2", "3", "4", "5")

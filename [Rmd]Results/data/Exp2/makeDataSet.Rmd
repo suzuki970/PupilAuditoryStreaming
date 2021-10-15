@@ -27,8 +27,8 @@ eTime = 5
 
 analysisWin = 0
 countFigNum=1
-mmFlg = FALSE
-auFlg = TRUE
+mmFlg = TRUE
+auFlg = FALSE
 
 saveLoc = "../../../[Python]PreProcessing/Exp2/data/"
 f1 = "State"
@@ -192,11 +192,11 @@ data_res$type = rep(c("changes","size"),times=c(dim(data_res_phasic)[1],dim(data
 
 if(mmFlg){
   save(data_RT,data_res_phasic,data_res_tonic,
-       data_numOfTrial,data_res,
+       data_numOfTrial,data_res,data_corr,
        file = "figure3_mm.rda")
 }else if(auFlg){
   save(data_RT,data_res_phasic,data_res_tonic,
-       data_numOfTrial,data_res,
+       data_numOfTrial,data_res,data_corr,
        file = "figure3_au.rda")
 }else{
   save(data_RT,data_res_phasic,data_res_tonic,

@@ -38,7 +38,7 @@ cfg={'THRES_DIFF':10,
      'WID_ANALYSIS':4,
      'useEye':2,
      'WID_FILTER':[],
-     'mmFlag':False,
+     'mmFlag':True,
      'normFlag':False,
      's_trg':[],
      'visualization':False
