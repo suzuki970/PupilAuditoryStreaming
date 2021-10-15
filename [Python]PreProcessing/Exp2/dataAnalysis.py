@@ -29,14 +29,18 @@ cfg={
 'METHOD':1, #subtraction
 'FLAG_LOWPASS':False,
 'THRES_DIFF':0.04,
-'mmFlag':True
+'mmFlag':False,
+'normFlag':False
 # 'THRES_DIFF':0.3 
 }
 
 
 saveFileLocs = 'data/'
 
-if cfg['mmFlag']:
+if not cfg['mmFlag'] and not cfg['normFlag']:
+    f = open(os.path.join(str(saveFileLocs + 'data_original_au.json')))    
+    cfg['THRES_DIFF'] = 20
+elif cfg['mmFlag']:
     f = open(os.path.join(str(saveFileLocs + 'data_original_mm.json')))
 else:
     f = open(os.path.join(str(saveFileLocs + 'data_original.json')))
@@ -352,7 +356,11 @@ plt.title('Task duration')
 
 
 ################## Data save ##########################
-if cfg['mmFlag']:
+if not cfg['mmFlag'] and not cfg['normFlag']:
+    with open(os.path.join(saveFileLocs + "data_au.json"),"w") as f:
+            json.dump(dat,f)
+
+elif cfg['mmFlag']:
     with open(os.path.join(saveFileLocs + "data_mm.json"),"w") as f:
             json.dump(dat,f)
 

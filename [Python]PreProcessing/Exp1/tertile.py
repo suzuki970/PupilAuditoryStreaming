@@ -39,14 +39,23 @@ cfg={
 'WID_FILTER':np.array([]),
 'METHOD':1, #subtraction
 'FLAG_LOWPASS':False,
-'THRES_DIFF':0.04
+'THRES_DIFF':0.04,
+'mmFlag':False,
+'normFlag':False
 # 'THRES_DIFF':300
 }
 
 saveFileLocs = 'data/'
 
 ## ########## data loading ###################
-f = open(os.path.join(str(saveFileLocs + 'data_original.json')))
+if not cfg['mmFlag'] and not cfg['normFlag']:
+    f = open(os.path.join(str(saveFileLocs + 'data_original_au.json')))    
+    cfg['THRES_DIFF'] = 20
+elif cfg['mmFlag']:
+    f = open(os.path.join(str(saveFileLocs + 'data_original_mm.json')))
+else:
+    f = open(os.path.join(str(saveFileLocs + 'data_original.json')))
+
 
 dat = json.load(f)
 f.close()
@@ -145,6 +154,16 @@ for i in np.arange(1,6):
                  yerr = df.loc[(slice(None),i), 'numOfSwitch'].values.std()/np.sqrt(numOfSub), 
                  xerr=None, fmt="o", ms=2.0, elinewidth=1.0, ecolor='k', capsize=6.0)
 plt.title('Tertile')
+
+################## Data save ##########################
+if not cfg['mmFlag'] and not cfg['normFlag']:
+    with open(os.path.join(saveFileLocs + "data_tertile_au.json"),"w") as f:
+            json.dump(dat,f)
+
+elif cfg['mmFlag']:
+    with open(os.path.join(saveFileLocs + "data_tertile_mm.json"),"w") as f:
+            json.dump(dat,f)
+
 
 # with open(os.path.join(saveFileLocs+"data_tertile.json"),"w") as f:
 #         json.dump(dat,f)

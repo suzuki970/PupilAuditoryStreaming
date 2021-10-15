@@ -27,7 +27,8 @@ eTime = 5
 
 analysisWin = 0
 countFigNum=1
-mmFlg = TRUE
+mmFlg = FALSE
+auFlg = TRUE
 
 saveLoc = "../../../[Python]PreProcessing/Exp2/data/"
 f1 = "State"
@@ -41,6 +42,8 @@ go3 = c("0", "1", "2", "3", "4", "5")
 ## data loading ------------------------------------------------------------
 if(mmFlg){
   data=fromJSON(file=paste(saveLoc,"data_mm.json", sep = ""))
+}else if(auFlg){
+  data=fromJSON(file=paste(saveLoc,"data_au.json", sep = ""))
 }else{
   data=fromJSON(file=paste(saveLoc,"data20210610.json", sep = ""))
 }
@@ -188,10 +191,16 @@ data_res$type = rep(c("changes","size"),times=c(dim(data_res_phasic)[1],dim(data
 # data_tertile$numOfTrial = NULL
 
 if(mmFlg){
-  save(data_RT,data_res,data_corr,file = "figure3_mm.rda")
+  save(data_RT,data_res_phasic,data_res_tonic,
+       data_numOfTrial,data_res,
+       file = "figure3_mm.rda")
+}else if(auFlg){
+  save(data_RT,data_res_phasic,data_res_tonic,
+       data_numOfTrial,data_res,
+       file = "figure3_au.rda")
 }else{
-  save(data_RT,data_res,data_tonic,data_tertile,data_corr,file = "figure3.rda")
+  save(data_RT,data_res_phasic,data_res_tonic,
+       data_numOfTrial,data_tonic,data_corr,
+       file = "figure3.rda")
 }
-
-
 ```

@@ -37,13 +37,17 @@ Fig. 1. Experimental design. (A) Time configuration of the ABA_ pattern. (B) Con
 ```{r, message=FALSE, echo=FALSE,warning=FALSE,include=FALSE}
 
 countFigNum = 1
-mmFlg = TRUE
+mmFlg = FALSE
+auFlg = TRUE
+
 figOutput = FALSE
 nsFlag = FALSE
 
 #### Figure 1A ####
 if(mmFlg){
   load("./data/Exp1/figure2_mm.rda")
+}else if(auFlg){
+  load("./data/Exp1/figure2_au.rda")
 }else{
   load("./data/Exp1/figure2.rda")
 }
@@ -61,22 +65,27 @@ config = list(alpha = 0.4,
               grCol = c("#F8766D","#00BA38","#619CFF")
 )
 if(mmFlg){
-  config$label_y = "Baseline Pupil size  \n [z-scored]"
+  config$label_y = "Baseline Pupil size [mm]"
 }else{
-  config$label_y = "Baseline Pupil size  \n [mm]"
+  config$label_y = "Baseline Pupil size  \n [z-scored]"
 }
 anovakun(data_res_tonic,"sA",long=T, peta=T)
 sigPair = makeSigPair(forDrawingPost)
 
 # p = dispLineGraph(data_res_tonic,config,c("numOfSwitch"))
 p = dispBoxGraph(data_res_tonic,config,c("numOfSwitch"))
-  # geom_line(aes(group=sub),alpha=0.2)
-
+# geom_line(aes(group=sub),alpha=0.2)
 
 if(mmFlg){
   p <- drawSignificance(p,sigPair,8,0.05,nsFlag)
   config$ylim = round(seq(5,8,1),2)
   config$ylim_stride = 0.2
+  config$xlim = round(seq(1,3,1),2)
+  config$xlim_stride = 0.5
+}else if(auFlg){
+  p <- drawSignificance(p,sigPair,9400,100,nsFlag)
+  config$ylim = round(seq(4000,10000,1000),2)
+  config$ylim_stride = 200
   config$xlim = round(seq(1,3,1),2)
   config$xlim_stride = 0.5
 }else{
@@ -88,12 +97,17 @@ if(mmFlg){
 }
 p = setEmptyStyle(p,config)
 
-
 eval(parse(text=paste("p", countFigNum ,"=p", sep="")))
 countFigNum = countFigNum+1
 
 # #### Figure 1B #### 
-data = fromJSON(file="../[Python]PreProcessing/Exp1/data/data_tertile.json")
+if(mmFlg){
+ data = fromJSON(file="../[Python]PreProcessing/Exp1/data/data_tertile_mm.json")
+}else if(auFlg){
+ data = fromJSON(file="../[Python]PreProcessing/Exp1/data/data_tertile_au.json")
+}else{
+ data = fromJSON(file="../[Python]PreProcessing/Exp1/data/data_tertile.json")
+}
 
 data_tertile = data.frame(
   sub = data$sub,
@@ -297,9 +311,12 @@ FONT_SIZE = 18
 #### Figure4A(response) ####
 if(mmFlg){
   load("./data/Exp2/figure3_mm.rda")
+}else if(auFlg){
+  load("./data/Exp2/figure3_au.rda")
 }else{
   load("./data/Exp2/figure3.rda")
 }
+
 data_res$Responses = go1[data_res$Responses+1]
 data_res$Responses = factor(data_res$Responses,levels = go1)
 
@@ -311,9 +328,9 @@ config = list(
   title = ""
 )
 if(mmFlg){
-  config$label_y = "Baseline Pupil size  \n [z-scored]"
+  config$label_y = "Baseline Pupil size [mm]"
 }else{
-  config$label_y = "Baseline Pupil size  \n [mm]"
+  config$label_y = "Baseline Pupil size  \n [z-scored]"
 }
 data_res = data_res[data_res$type == 'size',]
 data_res$type = NULL
@@ -323,7 +340,7 @@ anovakun(data_res,"sA",long=T, peta=T)
 
 data_res$sub = subName[data_res$sub]
 p = dispBoxGraph(data_res,config,c("Responses"))
-  # geom_line(aes(group=sub),alpha=0.2)
+# geom_line(aes(group=sub),alpha=0.2)
 
 
 sigPair = NULL
@@ -334,10 +351,16 @@ sigPair = cbind(sigPair,forDrawingSigANOVA[2,]['p.col'])
 
 # p <- dispLineGraph(data_res,config,c("Responses"))
 
-if(mmFlg){ 
+if(mmFlg){
   p <- drawSignificance(p,sigPair,8,0.05,nsFlag)
   config$ylim = round(seq(5,8,1),2)
   config$ylim_stride = 0.2
+  config$xlim = round(seq(1,2,1),2)
+  config$xlim_stride = 0.5
+}else if(auFlg){
+  p <- drawSignificance(p,sigPair,9400,100,nsFlag)
+  config$ylim = round(seq(4000,10000,1000),2)
+  config$ylim_stride = 200
   config$xlim = round(seq(1,2,1),2)
   config$xlim_stride = 0.5
 }else{
@@ -357,13 +380,22 @@ eval(parse(text=paste("p", countFigNum ,"=p", sep="")))
 countFigNum = countFigNum+1
 
 # #### Figure4B(Tertile) #####
-data_tertile=fromJSON(file="../[Python]PreProcessing/Exp2/data/data_tertile20210610.json")
+# data_tertile=fromJSON(file="../[Python]PreProcessing/Exp2/data/data_tertile20210610.json")
+if(mmFlg){
+ data = fromJSON(file="../[Python]PreProcessing/Exp2/data/data_tertile_mm.json")
+}else if(auFlg){
+ data = fromJSON(file="../[Python]PreProcessing/Exp2/data/data_tertile_au.json")
+}else{
+ data = fromJSON(file="../[Python]PreProcessing/Exp2/data/data_tertile20210610.json")
+}
+
 data_tertile = data.frame(
-  sub = data_tertile$sub,
-  Tertile = data_tertile$tertile,
-  responses_sorted = data_tertile$responses_sorted,
-  data_y = data_tertile$responses_sorted
+  sub = data$sub,
+  Tertile = data$tertile,
+  responses_sorted = data$responses_sorted,
+  data_y = data$responses_sorted
 )
+
 data_tertile = aggregate( . ~ sub*Tertile, data = data_tertile, FUN = "mean")
 
 data_tertile$sub = subName[data_tertile$sub]
