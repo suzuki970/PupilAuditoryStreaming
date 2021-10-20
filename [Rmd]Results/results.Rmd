@@ -59,6 +59,27 @@ numOfTrial_BF = round(exp(numOfTrial_BF@bayesFactor[["bf"]]),3)
 numOfTrial_table = forDrawingSigANOVA
 numOfTrial_post = forDrawingPost[["A"]][["bontab"]]
 
+#### Behavioral(number of switch and jitter) ####
+saveLoc = "../[Python]PreProcessing/Exp1/data/"
+dat_jitter=fromJSON(file=paste(saveLoc,"numOfSwitch_jitter.json", sep = ""))
+ 
+ind_jitter <- data.frame(
+  sub = unlist(dat_jitter$sub),
+  numOfSwitch = unlist(dat_jitter$numOfSwitch),
+  jitter = unlist(dat_jitter$taskTimeLen)
+)
+dat_jitter = aggregate( . ~ sub*numOfSwitch, data = ind_jitter, FUN = "mean")
+anovakun(dat_jitter,"sA",long=T, peta=T,gg=T)
+
+jitter_table_e1 = forDrawingSigANOVA
+
+dat_jitter$numOfSwitch = factor(dat_jitter$numOfSwitch,levels = unique(dat_jitter$numOfSwitch))
+dat_jitter$sub = factor(dat_jitter$sub,levels = unique(dat_jitter$sub))
+
+dat_jitter_BF_e1 = anovaBF(jitter ~ numOfSwitch + sub, data=dat_jitter, whichRandom = "sub",progress=FALSE)
+dat_jitter_BF_e1 = round(exp(dat_jitter_BF_e1@bayesFactor[["bf"]]),3)
+
+
 #### Behavioral(RT) #### 
 anovakun(data_RT,"sA",long=T, peta=T,gg=T)
 rt_sd = aggregate( RT ~ numOfSwitch, data = data_RT, FUN = "sd")
@@ -86,8 +107,10 @@ resultByesAnova = anovaBF(data_y ~ numOfSwitch + sub, data=data_res_tonic, which
 resultByesAnova = round(exp(resultByesAnova@bayesFactor[["bf"]]),3)
 
 table_fig2 = forDrawingSigANOVA
-tVal_fig2 = forDrawingPost[["A"]][["bontab"]][["t"]]
-pVal_fig2 = forDrawingPost[["A"]][["bontab"]][["adj.p"]]
+# tVal_fig2 = forDrawingPost[["A"]][["bontab"]][["t"]]
+# pVal_fig2 = forDrawingPost[["A"]][["bontab"]][["adj.p"]]
+BP_e1_post = forDrawingPost[["A"]][["bontab"]]
+
 
 x = data_res_tonic[data_res_tonic$numOfSwitch == "2+",]$data_y
 y = data_res_tonic[data_res_tonic$numOfSwitch == "0",]$data_y
@@ -362,23 +385,28 @@ Participants reported the number of perceptual alternations from 0 to 5. Since t
 ($F$(`r round(numOfTrial_table[2,]['df.col'],2)`,`r round(numOfTrial_table[3,]['df.col'],2)`) = `r round(numOfTrial_table[2,]['f.col'],3)`, 
 $p$ = `r round(numOfTrial_table[2,]['p.col'],3)`, $\eta^2_p$ = `r round(numOfTrial_table[2,]['p.eta^2'],3)`, $BF_{10}$ = `r numOfTrial_BF`). 
 Post analysis showed that the number of trials for 1-alt cases was significantly larger than for 0- and >1-alt cases (
-$t$(1, `r numOfTrial_post[2,]$df`) = `r round(numOfTrial_post[2,]$t,3)`, $adj.p$ = `r round(numOfTrial_post[2,]$adj.p, 3)`, 
-$t$(1, `r numOfTrial_post[1,]$df`) = `r round(numOfTrial_post[1,]$t,3)`, $adj.p$ = `r round(numOfTrial_post[1,]$adj.p, 3)`).
+$t$(1, `r numOfTrial_post[2,]$df`) = `r round(numOfTrial_post[2,]$t,3)`, $p$ = `r round(numOfTrial_post[2,]$p.value, 3)`, 
+$t$(1, `r numOfTrial_post[1,]$df`) = `r round(numOfTrial_post[1,]$t,3)`, $p$ = `r round(numOfTrial_post[1,]$p.value, 3)`) 
+at alpha level of 0.05/3 corrected by a Bonferroni-Holm method.
 RTs of each response category were 
 `r rt_ave[rt_ave$numOfSwitch == 0,]$RT` $\pm$ `r rt_sd[rt_sd$numOfSwitch == 0,]$RT` sec, 
 `r rt_ave[rt_ave$numOfSwitch == 1,]$RT` $\pm$ `r rt_sd[rt_sd$numOfSwitch == 1,]$RT` sec, and 
 `r rt_ave[rt_ave$numOfSwitch == 2,]$RT` $\pm$ `r rt_sd[rt_sd$numOfSwitch == 2,]$RT` sec 
 ($F$(`r round(RT_table[2,]['df.col'],2)`,`r round(RT_table[3,]['df.col'],2)`) = `r round(RT_table[2,]['f.col'],3)`, 
 $p$ = `r round(RT_table[2,]['p.col'],3)`, $\eta^2_p$ = `r round(RT_table[2,]['p.eta^2'],3)`, $BF_{10}$ = `r data_RT_BF`).
+Although the observation period was jittered from 5-9 second, there was no statistical differences between the number of perceptual alternations and the observation time 
+($F$(`r round(jitter_table_e1[2,]['df.col'],2)`,`r round(jitter_table_e1[3,]['df.col'],2)`) = `r round(jitter_table_e1[2,]['f.col'],3)`, 
+$p$ = `r round(jitter_table_e1[2,]['p.col'],3)`, $\eta^2_p$ = `r round(jitter_table_e1[2,]['p.eta^2'],3)`, $BF_{10}$ = `r dat_jitter_BF_e1`). 
+
 
 ### Baseline pupil size
 __Figure 2A__ illustrates the grand-averaged baseline pupil changes across participants before the response cue onset, as a function of perceptual alternations number. The one-way repeated measures ANOVA revealed a significant main effect on the number of perceptual alternations 
 ($F$(`r round(table_fig2[2,]['df.col'],2)`,`r round(table_fig2[3,]['df.col'],2)`) = `r round(table_fig2[2,]['f.col'],3)`, 
 $p$ = `r round(table_fig2[2,]['p.col'],3)`, $\eta^2_p$ = `r round(table_fig2[2,]['p.eta^2'],3)`, $BF_{10}$ = `r resultByesAnova`). 
 The post-hoc multiple comparisons showed that the baseline pupil size in the >1-alt case was significantly larger than in the 0- and 1-alt cases 
-($t$(1, `r numOfsub-1`) = `r round(tVal_fig2[1],3)`, $adj.p$ = `r round(pVal_fig2[1],3)`, 
+($t$(1, `r numOfsub-1`) = `r round(BP_e1_post[1,]$t,3)`, $p$ = `r round(BP_e1_post[1,]$p.value,3)`, 
 Cohen’s  $d_z$ = `r cohen_d0`, $BF_{10}$ =  `r bayesF_d0`; 
-$t$(1, `r numOfsub-1`) = `r round(tVal_fig2[2],3)`, $adj.p$ =  `r round(pVal_fig2[2],3)`, 
+$t$(1, `r numOfsub-1`) = `r round(BP_e1_post[2,]$t,3)`, $p$ =  `r round(BP_e1_post[2,]$p.value,3)`, 
 Cohen’s  $d_z$ = `r cohen_d1`, $BF_{10}$ =  `r bayesF_d1`, respectively), 
 indicating that the baseline pupil size, prior to counting the number of alternations, was related to a subsequent number of perceptual transitions.
 The answered number of trials was significantly different among the 0-, 1-, and >1 cases as shown above. Such unbalanced trial numbers can cause biases in the statistical analysis and decreased statistical power. Thus, we performed an alternative analysis to avoid this potential statistical problem. We segregated the trials equally into five bins based on the rank order of baseline pupil size. Results are shown in Fig. 2B. The data were fitted by a simple regression model 
@@ -417,6 +445,25 @@ RT_cohen_d = round(abs(RT_cohen_d[["estimate"]]),3)
 
 # bayesF = ttestBF(x = x, y = y, paired=TRUE)
 # bayesF = round(exp(bayesF@bayesFactor[["bf"]]),3)
+
+#### Behavioral(number of switch and jitter) ####
+saveLoc = "../[Python]PreProcessing/Exp2/data/"
+dat_jitter=fromJSON(file=paste(saveLoc,"numOfSwitch_jitter.json", sep = ""))
+ 
+ind_jitter <- data.frame(
+  sub = unlist(dat_jitter$sub),
+  Responses = unlist(dat_jitter$responses),
+  jitter = unlist(dat_jitter$taskTimeLen)
+)
+dat_jitter = aggregate( . ~ sub*Responses, data = ind_jitter, FUN = "mean")
+
+x = dat_jitter[dat_jitter$Responses == 0,]$jitter
+y = dat_jitter[dat_jitter$Responses == 1,]$jitter
+
+jitter_table_e2 = t.test(x,y,var.equal=T,paired=T)
+
+jitter_cohen_d_e2 = cohen.d(x,y,paired=TRUE, within=TRUE)
+jitter_cohen_d_e2 = round(abs(jitter_cohen_d_e2[["estimate"]]),3)
 
 #### Behavioral(trials) ####
 data_numOfTrial = aggregate( numOfTrial ~ sub*Responses, data = data_corr, FUN = "max")
@@ -557,8 +604,15 @@ data_anovaPC_BF = round(exp(data_anovaPC_BF@bayesFactor[["bf"]]),3)
 
 ## Experiment 2
 ### Behavioral response
-The average number of ‘yes’ and ‘no’ trials (presence and absence of perceptual alternations, respectively) were `r ave_numOfTrial[ave_numOfTrial$Responses == 0,]$numOfTrial` $\pm$ `r sd_numOfTrial[sd_numOfTrial$Responses == '0',]$numOfTrial` and `r ave_numOfTrial[ave_numOfTrial$Responses == '1',]$numOfTrial` $\pm$ `r sd_numOfTrial[sd_numOfTrial$Responses == '1',]$numOfTrial`, respectively ($t$(1,`r numOfTrial_e2_table[["parameter"]][["df"]]`) = `r round(numOfTrial_e2_table[["statistic"]][["t"]],3)`, $p$ = `r round(numOfTrial_e2_table[["p.value"]],3)`, Cohen’s  $d_z$ = `r numOfTrial_e2_cohen_d`). 
-RT in the answer ‘yes’ (`r rt_ave[rt_ave$Responses == 0,]$RT` $\pm$ `r rt_sd[rt_sd$Responses == 0,]$RT` s) was significantly faster than ‘no’ (`r rt_ave[rt_ave$Responses == 0,]$RT` $\pm$ `r rt_sd[rt_sd$Responses == 0,]$RT` s)  ($t$(1,`r RT_table[["parameter"]][["df"]]`) = `r round(RT_table[["statistic"]][["t"]],3)`, $p$ = `r round(RT_table[["p.value"]],3)`, Cohen’s  $d_z$ = `r RT_cohen_d`). This could be because, the participant in the ‘yes’ trial would have been ready to respond as soon as the first occurrence of a perceptual alternation before the response cue was presented, whereas the participant had to wait until the cue to say ‘no’. It is important to note, therefore, that the perceptual load and/or mental effort is expected to be lower in the ‘yes’ trials than in the ‘no’ ones. In Experiment 1, the participant had to keep counting and memorizing the number of alternations throughout the observation period, possibly leading to increasing perceptual load in the trials with increasing number of alternations. Thus, there was a concern that the association between the pupil size and number of perceptual alternations observed in Experiment 1 reflected such a perceptual load, rather than the processes involved in perceptual switching. The current yes/no paradigm serves as a control test to evaluate the confounding effect of this task-related perceptual load. 
+The average number of ‘yes’ and ‘no’ trials (presence and absence of perceptual alternations, respectively) were 
+`r ave_numOfTrial[ave_numOfTrial$Responses == 0,]$numOfTrial` $\pm$ `r sd_numOfTrial[sd_numOfTrial$Responses == '0',]$numOfTrial` and 
+`r ave_numOfTrial[ave_numOfTrial$Responses == '1',]$numOfTrial` $\pm$ `r sd_numOfTrial[sd_numOfTrial$Responses == '1',]$numOfTrial`, respectively 
+($t$(1,`r numOfTrial_e2_table[["parameter"]][["df"]]`) = `r round(numOfTrial_e2_table[["statistic"]][["t"]],3)`, $p$ = `r round(numOfTrial_e2_table[["p.value"]],3)`, Cohen’s  $d_z$ = `r numOfTrial_e2_cohen_d`). 
+Again, there was no statistical differences between 'yes' or 'no' trial and the observation time 
+($t$(1,`r jitter_table_e2[["parameter"]][["df"]]`) = `r round(jitter_table_e2[["statistic"]][["t"]],3)`, $p$ = `r round(jitter_table_e2[["p.value"]],3)`, Cohen’s  $d_z$ = `r jitter_cohen_d_e2`). 
+
+RT in the answer ‘yes’ (`r rt_ave[rt_ave$Responses == 0,]$RT` $\pm$ `r rt_sd[rt_sd$Responses == 0,]$RT` s) was significantly faster than ‘no’ (`r rt_ave[rt_ave$Responses == 0,]$RT` $\pm$ `r rt_sd[rt_sd$Responses == 0,]$RT` s)  
+($t$(1,`r RT_table[["parameter"]][["df"]]`) = `r round(RT_table[["statistic"]][["t"]],3)`, $p$ = `r round(RT_table[["p.value"]],3)`, Cohen’s  $d_z$ = `r RT_cohen_d`). This could be because, the participant in the ‘yes’ trial would have been ready to respond as soon as the first occurrence of a perceptual alternation before the response cue was presented, whereas the participant had to wait until the cue to say ‘no’. It is important to note, therefore, that the perceptual load and/or mental effort is expected to be lower in the ‘yes’ trials than in the ‘no’ ones. In Experiment 1, the participant had to keep counting and memorizing the number of alternations throughout the observation period, possibly leading to increasing perceptual load in the trials with increasing number of alternations. Thus, there was a concern that the association between the pupil size and number of perceptual alternations observed in Experiment 1 reflected such a perceptual load, rather than the processes involved in perceptual switching. The current yes/no paradigm serves as a control test to evaluate the confounding effect of this task-related perceptual load. 
 
 ### Baseline pupil size
 Figure 3A shows the grand-averaged time-course of baseline pupil changes parameterized by alternation cases (yes or no). Consistent with Experiment 1, a paired t-test for averaged changes in baseline pupil size from -1000 ms to the response cue onset for each answer (i.e., the presence or absence of perceptual alternation) showed that the baseline pupil size in the presence of a perceptual alternation was significantly larger than in the absence of perceptual alternation ($t$(1, `r numOfSub_e2-1`) = `r round(tVal[1],3)`, $p$ = `r round(pVal[1],3)`, Cohen’s  $d_z$ = `r cohen_d`, $BF_{10}$ =  `r bayesF`).
@@ -613,10 +667,12 @@ As the intertrial interval was jittered in 5–7 s and the baseline pupil size w
 <!-- ($F$(1,`r round(event_PC_table[1,]['df.col'],3)`) = `r round(event_PC_table[2,]['f.col'],3)`, $p$ = `r round(event_PC_table[2,]['p.col'],3)`, $\eta^2_p$ = `r round(event_PC_table[2,]['p.eta^2'],3)`; $F$(1,`r round(event_PC_table[3,]['df.col'],3)`) = `r round(event_PC_table[4,]['f.col'],3)`, $p$ = `r round(event_PC_table[4,]['p.col'],3)`, $\eta^2_p$ = `r round(event_PC_table[4,]['p.eta^2'],3)`; $F$(1,`r round(event_PC_table[5,]['df.col'],3)`) = `r round(event_PC_table[6,]['f.col'],3)`, $p$ = `r round(event_PC_table[6,]['p.col'],3)`, $\eta^2_p$ = `r round(event_PC_table[6,]['p.eta^2'],3)`). -->
 
 ### Statistical analysis
-A one-way repeated-measures analysis of variance (ANOVA) was performed using the baseline pupil size and the number of switches in Experiment 1 and presence vs. absence of perceptual switch in Experiment 2 as within-subject factors. The level of statistical significance was set to $p$ < 0.05 for all analyses. Pairwise comparisons of the main effects were corrected through multiple comparisons using the modified Bonferroni method. Effect sizes were given as partial $\eta^2$; $\eta^2_p$ for ANOVA and as Cohen's $d_z$ for $t$-tests __(Cohen, 1998, p. 48)__. 
+A one-way repeated-measures analysis of variance (ANOVA) was performed using the baseline pupil size and the number of switches in Experiment 1 and presence vs. absence of perceptual switch in Experiment 2 as within-subject factors. In pairwise comparisons of the main effects, uncorrected p values are reported with the Bonferroni-corrected alpha level.
+ Effect sizes were given as partial $\eta^2$; $\eta^2_p$ for ANOVA and as Cohen's $d_z$ for $t$-tests __(Cohen, 1998, p. 48)__. 
 <!-- $Cohen's\:d_z = \frac{\rvert\mu_1 - \mu_2\rvert}{s}$ -->
 <!-- $,s = \sqrt\frac{n_1s_1^2+n_2s_2^2}{n_1+n_2}$ -->
-
+<!-- For pair-wise comparison, the level of statistical significance was set to $p$ < 0.05 for all analyses. 
+-->
 <!-- where $mu$ as the mean difference between their responses in each condition and $P$ as the standard deviation. -->
 To quantify the evidence in the data, we performed Bayesian one-sample t-tests using the BayesFactor package (v0.9.12-4.2) __(Morey, 2019)__ for the R software (Version 3.6.3) __(R Core Team, 2020)__. We reported Bayesian Factor (BF) estimating the relative weight of the evidence in favor of $H_1$ over $H_0$ as $BF_{10}$. Greenhouse–Geisser corrections were performed when the results of Mauchly’s sphericity test were significant.
 

@@ -30,7 +30,8 @@ datHash={"PDR":[],
          "Blink" : [],
          "Saccade":[],
          "rejectFlag":[],
-         "taskTimeLen":[]
+         "taskTimeLen":[],
+         "jitter":[]
          # "numOfSaccade":[],
          # "ampOfSaccade":[]
           }
@@ -45,10 +46,7 @@ cfg={'THRES_DIFF':10,
      'visualization':False
      }
 
-
-from au2mm import au2mm
-au2mm(700)
-
+folderName = folderName[0:1]
 for iSub,subName in enumerate(folderName):
     fileName = glob.glob(os.path.join(subName+'/*.asc'))
  
@@ -162,7 +160,8 @@ for iSub,subName in enumerate(folderName):
                
     for que,res in zip(events_queue,events_response):
         datHash['RT'].append((res[0]-que[0])/fs)
-        
+  
+    
     ############ # of switch #########################
     datHash['numOfSwitch'] = np.r_[datHash['numOfSwitch'], tmp_numOfSwitch]
     

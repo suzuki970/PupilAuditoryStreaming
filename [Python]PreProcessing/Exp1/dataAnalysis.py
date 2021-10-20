@@ -508,6 +508,9 @@ df['numOfSwitch'][df['numOfSwitch'] > 1] = 2
 
 df['taskTimeLen'] = dat['taskTimeLen']
 
+path = os.path.join(saveFileLocs + "numOfSwitch_jitter.json")
+df.to_json(path)
+
 df = df.groupby(['sub', 'numOfSwitch']).mean()
 
 fig = plt.figure(figsize=(6,3), dpi=200)
@@ -537,6 +540,7 @@ for i in range(3):
                  yerr = df.loc[(slice(None),i), 'taskTimeLen'].values.std()/np.sqrt(numOfSub), 
                  xerr=None, fmt="o", ms=2.0, elinewidth=1.0, ecolor='k', capsize=6.0)
 plt.title('Task duration')
+
 
 #%% ################ Data save ##########################
 if not cfg['mmFlag'] and not cfg['normFlag']:

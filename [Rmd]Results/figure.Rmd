@@ -52,6 +52,7 @@ if(mmFlg){
   load("./data/Exp1/figure2.rda")
 }
 
+
 numOfsub = length(unique(data_res_tonic$sub))
 
 data_res_tonic$sub = subName[data_res_tonic$sub]

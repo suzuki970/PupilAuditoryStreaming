@@ -342,6 +342,12 @@ df['sub'] = dat['sub']
 df['PDR'] = dat['PDR_size']
 df['responses'] = dat['responses']
 df['taskTimeLen'] = dat['taskTimeLen']
+
+
+path = os.path.join(saveFileLocs + "numOfSwitch_jitter.json")
+df.to_json(path)
+
+
 df = df.groupby(['sub', 'responses']).mean()
 
 from scipy import stats
