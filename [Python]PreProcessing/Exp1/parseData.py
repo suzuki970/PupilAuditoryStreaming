@@ -1,14 +1,15 @@
+import sys
+import os
+import pprint
+
+sys.path.append('../../../../../GoogleDrive/PupilAnalysisToolbox/python/preprocessing/lib')
+pprint.pprint(sys.path)
+
 import numpy as np
 import json
 from asc2array import asc2array
 import glob
-import os
-import math
 
-from pre_processing import pre_processing,moving_avg
-import matplotlib.pyplot as plt
-from itertools import chain
- 
 def split_list(l, n):
     windowL = np.round(np.linspace(0, len(l), n+1))
     windowL = [int(windowL[i]) for i in np.arange(len(windowL))]
@@ -43,6 +44,10 @@ cfg={'THRES_DIFF':10,
      's_trg':[],
      'visualization':False
      }
+
+
+from au2mm import au2mm
+au2mm(700)
 
 for iSub,subName in enumerate(folderName):
     fileName = glob.glob(os.path.join(subName+'/*.asc'))

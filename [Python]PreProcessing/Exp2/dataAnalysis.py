@@ -1,11 +1,15 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Nov 20 12:32:21 2020
 
-
+@author: yutasuzuki
+"""
 import sys
 import os
 import pprint
 
-sys.path.append('/Volumes/GoogleDrive/My Drive/PupilAnalysisToolbox/python/preprocessing/lib')
-pprint.pprint(sys.path)
+sys.path.append('../../../../../GoogleDrive/PupilAnalysisToolbox/python/preprocessing/lib')
 
 import numpy as np
 import matplotlib.pyplot as plt

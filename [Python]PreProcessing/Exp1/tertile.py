@@ -40,8 +40,8 @@ cfg={
 'METHOD':1, #subtraction
 'FLAG_LOWPASS':False,
 'THRES_DIFF':0.04,
-'mmFlag':False,
-'normFlag':True
+'mmFlag':True,
+'normFlag':False
 # 'THRES_DIFF':300
 }
 

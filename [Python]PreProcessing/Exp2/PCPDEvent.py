@@ -6,13 +6,17 @@ Created on Fri Apr  9 15:07:55 2021
 @author: yutasuzuki
 """
 
+import sys
+import os
+
+sys.path.append('../../../../../GoogleDrive/PupilAnalysisToolbox/python/preprocessing/lib')
+
 import numpy as np
 import matplotlib.pyplot as plt
 from pre_processing import pre_processing,re_sampling,getNearestValue,moving_avg
 from band_pass_filter import lowpass_filter
 from rejectBlink_PCA import rejectBlink_PCA
 import json
-import os
 import random
 import itertools
 import warnings
@@ -39,14 +43,23 @@ cfg={
 'WID_FILTER':np.array([]),
 'METHOD':1, #subtraction
 'FLAG_LOWPASS':False,
-'THRES_DIFF':0.04
+'THRES_DIFF':0.04,
+'mmFlag':True,
+'normFlag':False
 }
 
 saveFileLocs = './data/'
-saveFileLocs = '/Users/yutasuzuki/Desktop/Python/Pxx_auditoryIllusion/e1_endogenous_Switching/analysis/data/'
 
 ## ########## data loading ###################
-f = open(os.path.join(str(saveFileLocs + 'data_original.json')))
+if not cfg['mmFlag'] and not cfg['normFlag']:
+    f = open(os.path.join(str(saveFileLocs + 'data_original_au.json')))    
+    cfg['THRES_DIFF'] = 20
+elif cfg['mmFlag']:
+    f = open(os.path.join(str(saveFileLocs + 'data_original_mm.json')))
+else:
+    f = open(os.path.join(str(saveFileLocs + 'data_original.json')))
+
+
 dat = json.load(f)
 f.close()
 
@@ -245,6 +258,20 @@ for indSwitch in np.arange(2):
     
 events['numOfTrial'] = events['numOfTrial'].tolist()
 
+# %% ################### Baseline pupil size #################################
+diam = np.array(dat['PDR'].copy())
+diam = np.mean(diam[:,-1000:],axis=1).reshape(len(diam),1)
+events['Baseline'] = diam.tolist()
+
+################## Data save ##########################
+if not cfg['mmFlag'] and not cfg['normFlag']:
+    with open(os.path.join(saveFileLocs + "PDPCevents_au.json"),"w") as f:
+            json.dump(events,f)
+
+elif cfg['mmFlag']:
+    with open(os.path.join(saveFileLocs + "PDPCevents_mm.json"),"w") as f:
+            json.dump(events,f)
+            
 # with open(os.path.join(saveFileLocs + "PDPCevents.json"),"w") as f:
 #         json.dump(events,f)
         

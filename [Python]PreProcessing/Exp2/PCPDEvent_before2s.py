@@ -6,7 +6,10 @@ Created on Wed Oct 13 19:23:45 2021
 @author: yuta
 """
 
+import sys
+import os
 
+sys.path.append('../../../../../GoogleDrive/PupilAnalysisToolbox/python/preprocessing/lib')
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,7 +17,6 @@ from pre_processing import pre_processing,re_sampling,getNearestValue,moving_avg
 from band_pass_filter import lowpass_filter
 from rejectBlink_PCA import rejectBlink_PCA
 import json
-import os
 import random
 import itertools
 import warnings
@@ -30,7 +32,7 @@ def split_list(l, n):
     for idx in np.arange(len(windowL)-1):
         yield l[windowL[idx]:windowL[idx+1]]
   
-## ########## initial settings ###################
+# %% ########## initial settings ###################
 
 cfg={
 'SAMPLING_RATE':1000,   
@@ -41,13 +43,22 @@ cfg={
 'WID_FILTER':np.array([]),
 'METHOD':1, #subtraction
 'FLAG_LOWPASS':False,
-'THRES_DIFF':0.04
+'THRES_DIFF':0.04,
+'mmFlag':True,
+'normFlag':False
 }
 
 saveFileLocs = './data/'
 
-## ########## data loading ###################
-f = open(os.path.join(str(saveFileLocs + 'data_original.json')))
+# %% ########## data loading ###################
+if not cfg['mmFlag'] and not cfg['normFlag']:
+    f = open(os.path.join(str(saveFileLocs + 'data_original_au.json')))    
+    cfg['THRES_DIFF'] = 20
+elif cfg['mmFlag']:
+    f = open(os.path.join(str(saveFileLocs + 'data_original_mm.json')))
+else:
+    f = open(os.path.join(str(saveFileLocs + 'data_original.json')))
+
 dat = json.load(f)
 f.close()
 
@@ -63,7 +74,7 @@ tmp_base = tmp_base.reshape(len(tmp_base),1)
 
 cfg['WID_BASELINE'] = np.concatenate([-tmp_base-1,-tmp_base],1)
 
-## ########## answer array move behind ###################
+# %% ########## answer array move behind ###################
 switch = np.array(dat['responses'].copy())
 rt = np.array(dat['RT'])
 
@@ -85,7 +96,7 @@ dat['RT'] = rt.copy().tolist()
 
 tmp_rejectNum = np.argwhere(switch == -1).reshape(-1)
 
-################## artifact rejection ##########################
+# %% ################# artifact rejection ##########################
 
 y,rejectNum = pre_processing(np.array(dat['PDR_baseline'].copy()),cfg)
 
@@ -98,7 +109,7 @@ for mm in mmName:
  
 y = np.delete(y,rejectNum,axis=0)
 
-################## Outlier ##########################
+# %% ################# Outlier ##########################
 
 max_val = [max(abs(y[i,])) for i in np.arange(y.shape[0])]
 fx = np.diff(y)
@@ -114,7 +125,7 @@ for mm in mmName:
 
 y = np.delete(y,rejectOutlier,axis=0)
 
-################## reject subject (N < 40%) ##########################
+# %% ################# reject subject (N < 40%) ##########################
 reject=[]
 NUM_TRIAL = 80
 numOftrials = []
@@ -150,7 +161,7 @@ ave = 1-(np.array(numOftrials)/np.array(original_numOfTrial))
 
 print('rejected num ave = ' + str(round(np.mean(ave),3)) + ', sd = ' + str(round(np.std(ave),3)))
 
-########################################################################
+# %%#######################################################################
 test_y = moving_avg(y.copy(),1000)
 
 events = {'indices':[],'event':[]}
@@ -214,10 +225,10 @@ for ev,indices in zip(events['event'],events['indices']):
             # plt.plot(indices,i,'ko',markersize=1,alpha=0.5)
             rateC[i] = 1
             
-    tmp = rateD[2000:4000].sum()
+    tmp = rateD[2000:3000].sum()
     events['dilation_time'].append(tmp)
     
-    tmp = rateC[2000:4000].sum()
+    tmp = rateC[2000:3000].sum()
     events['constriction_time'].append(tmp)
         
 events["responses_norm"] = np.float32(np.array(events["responses"]))
@@ -233,7 +244,7 @@ events['constriction'] = moving_avg(np.array(events['constriction']),500).tolist
 events['dilation'] = re_sampling(events['dilation'],90).tolist()
 events['constriction'] = re_sampling(events['constriction'],90).tolist()
 
-################# trial number ##########################
+# %% ################# trial number ##########################
 events['numOfTrial'] = np.zeros(y.shape[0])
 
 currentNum = 0
@@ -246,8 +257,20 @@ for indSwitch in np.arange(2):
     
 events['numOfTrial'] = events['numOfTrial'].tolist()
 
-with open(os.path.join(saveFileLocs + "PDPCevents_before2s.json"),"w") as f:
-        json.dump(events,f)
+# %% ################### Baseline pupil size #################################
+diam = np.array(dat['PDR'].copy())
+diam = np.mean(diam[:,-1000:],axis=1).reshape(len(diam),1)
+events['Baseline'] = diam.tolist()
+
+# %% ################ save file ##########################
+if not cfg['mmFlag'] and not cfg['normFlag']:
+    with open(os.path.join(saveFileLocs + "PDPCevents_before2s_au.json"),"w") as f:
+            json.dump(events,f)
+
+elif cfg['mmFlag']:
+    with open(os.path.join(saveFileLocs + "PDPCevents_before2s_mm.json"),"w") as f:
+            json.dump(events,f)
+
         
 numOfSub = len(np.unique(events['sub']))
 plt.figure(figsize=(6,8))

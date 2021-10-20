@@ -107,7 +107,13 @@ bayesF = ttestBF(x = x, y = y, paired=TRUE)
 bayesF_d1 = round(exp(bayesF@bayesFactor[["bf"]]),3)
 
 #### Figure 2B (tertile) #####
-data=fromJSON(file="../[Python]PreProcessing/Exp1/data/data_tertile.json")
+if(mmFlg){
+  data = fromJSON(file="../[Python]PreProcessing/Exp1/data/data_tertile_mm.json")
+}else if(auFlg){
+  data = fromJSON(file="../[Python]PreProcessing/Exp1/data/data_tertile_au.json")
+}else{
+  data = fromJSON(file="../[Python]PreProcessing/Exp1/data/data_tertile.json")
+}
 
 data_tertile = data.frame(
   sub = data$sub,
@@ -456,13 +462,20 @@ bayesF = round(exp(bayesF@bayesFactor[["bf"]]),3)
 
 #### Figure 4B(tertile) ####
 # data_tertile=fromJSON(file="./data/Exp2/data_tertile20210610.json")
-data_tertile=fromJSON(file="../[Python]PreProcessing/Exp2/data/data_tertile20210610.json")
+# data_tertile=fromJSON(file="../[Python]PreProcessing/Exp2/data/data_tertile20210610.json")
+if(mmFlg){
+  data = fromJSON(file="../[Python]PreProcessing/Exp2/data/data_tertile_mm.json")
+}else if(auFlg){
+  data = fromJSON(file="../[Python]PreProcessing/Exp2/data/data_tertile_au.json")
+}else{
+  data = fromJSON(file="../[Python]PreProcessing/Exp2/data/data_tertile20210610.json")
+}
 
 data_tertile_e2 = data.frame(
-  sub = data_tertile$sub,
-  Tertile = data_tertile$tertile,
-  responses_sorted = data_tertile$responses_sorted,
-  data_y = data_tertile$responses_sorted
+  sub = data$sub,
+  Tertile = data$tertile,
+  responses_sorted = data$responses_sorted,
+  data_y = data$responses_sorted
 )
 data_tertile_e2 = aggregate( . ~ sub*Tertile, data = data_tertile_e2, FUN = "mean")
 
@@ -506,6 +519,7 @@ f = data.frame(
 
 #### Figure 5 ####
 load('./data/dataset_figure5_2.rda')
+
 # ind_data = ind_data[ind_data$events == 'dilation',]
 # data_ave = aggregate( data_y ~ sub*numOfSwitch*exp, data = ind_data, FUN = "mean")
 
@@ -577,7 +591,11 @@ $p$ = `r round(event_PC_table[6,]['p.col'],3)`, $\eta^2_p$ = `r round(event_PC_t
 
 ## Cross-correlation function
 The baseline pupil size up to six trials ahead of the behavioral response and after the response until three trials was positively correlated to the number of perceptual alternations (Fig. 5A). 
-As the intertrial interval was jittered in 5–7 s and the baseline pupil size was inherently defined as 5–7 s before the response in the 0-lag condition, the result indicates that the baseline pupil size predicted perceptual alternation at least 35 s (= 5 s x 6 trials + 5 s) before the behavioral response and that the overall correspondence between pupil size and perceptual alternation was over a sustained time window of 45 s (5 s x 9 trials) at minimum and of 54 s (6 s x 9 trials) at the averaged interval. Figure 5B shows that the averaged maximum cross-correlation coefficient (found for each subject) in the raw condition was significantly higher than in the shuffled condition ($t$(1, `r numOfsub-1`) = `r round(CCF_max[["statistic"]][["t"]],3)`, $p$ = `r round(CCF_max[["p.value"]], 3)`, Cohen’s  $d_z$ = `r CCF_max_cohen_d`, $BF_{10}$ =  `r round(CCF_max_bayesF, 3)`). 
+As the intertrial interval was jittered in 5–7 s and the baseline pupil size was inherently defined as 5–7 s before the response in the 0-lag condition, the result indicates that the baseline pupil size predicted perceptual alternation at least 35 s (= 5 s x 6 trials + 5 s) before the behavioral response and that the overall correspondence between pupil size and perceptual alternation was over a sustained time window of 45 s (5 s x 9 trials) at minimum and of 54 s (6 s x 9 trials) at the averaged interval. 
+<!-- Figure 5B shows that the averaged maximum cross-correlation coefficient (found for each subject) in the raw condition was significantly higher than in the shuffled condition ($t$(1, `r numOfsub-1`) = `r round(CCF_max[["statistic"]][["t"]],3)`, $p$ = `r round(CCF_max[["p.value"]], 3)`, Cohen’s  $d_z$ = `r CCF_max_cohen_d`, $BF_{10}$ =  `r round(CCF_max_bayesF, 3)`).  -->
+
+
+
 
 
 <!-- Each trial lasted for 5-7 s, segregated by a response cue to ask for behavioral responses. In the cross-correlation analysis, we aligned the timing of behavioral response and pupil size throughout the experimental session (see Method). Cross-correlation functions between the changes in baseline pupil size and the number of perceptual switches were calculated in every single subject. We found that the number of switches was positively correlated with the pupil size up to 5 trials (nearly 25 to 35 s) ahead of the response time (Figure 3A). The maximum cross-correlation coefficient in raw cross-correlation was significantly higher than in shuffled (__Figure 3A__). -->

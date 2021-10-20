@@ -5,6 +5,11 @@ Created on Fri Nov 20 12:32:21 2020
 
 @author: yutasuzuki
 """
+import sys
+import os
+import pprint
+
+sys.path.append('../../../../../GoogleDrive/PupilAnalysisToolbox/python/preprocessing/lib')
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -48,7 +53,7 @@ cfg={
 
 saveFileLocs = 'data/'
 
-## ########## data loading ###################
+#%% ########## data loading ###################
 if not cfg['mmFlag'] and not cfg['normFlag']:
     f = open(os.path.join(str(saveFileLocs + 'data_original_au.json')))    
     cfg['THRES_DIFF'] = 20
@@ -72,7 +77,7 @@ tmp_base = tmp_base.reshape(len(tmp_base),1)
 
 cfg['WID_BASELINE'] = np.concatenate([-tmp_base-1,-tmp_base],1)
 
-## ########## answer array move behind ###################
+#%% ########## answer array move behind ###################
 switch = np.array(dat['numOfSwitch'].copy())
 rt = np.array(dat['RT'])
 
@@ -95,7 +100,7 @@ dat['RT'] = rt.copy().tolist()
 
 tmp_rejectNum = np.argwhere(switch == -1).reshape(-1)
 
-################## artifact rejection ##########################
+#%% ################# artifact rejection ##########################
 
 y,rejectNum = pre_processing(np.array(dat['PDR_baseline'].copy()),cfg)
 
@@ -110,7 +115,7 @@ y = np.delete(y,rejectNum,axis=0)
 tmp_base = np.delete(tmp_base,rejectNum,axis=0)
 
 
-################## PCA ##########################
+#%% ################# PCA ##########################
 # pca_x,pca_y,rejectNumPCA = rejectBlink_PCA(y)
 
 # y = np.delete(y,rejectNumPCA,axis=0)
@@ -118,7 +123,7 @@ tmp_base = np.delete(tmp_base,rejectNum,axis=0)
 # for mm in mmName:
 #     dat[mm] = [d for i,d in enumerate(dat[mm]) if not i in rejectNumPCA]
 
-################## Outlier ##########################
+#%% ################# Outlier ##########################
 
 max_val = [max(abs(y[i,])) for i in np.arange(y.shape[0])]
 fx = np.diff(y)
@@ -136,7 +141,7 @@ y = np.delete(y,rejectOutlier,axis=0)
 tmp_base = np.delete(tmp_base,rejectOutlier,axis=0)
 
 
-################## blink and saccade ##########################
+#%% ################# blink and saccade ##########################
 # ind_baseline = [rt*cfg['SAMPLING_RATE'] for rt in dat['RT']]
 # ind_baseline = tmp_base*cfg['SAMPLING_RATE']
 
@@ -150,7 +155,7 @@ tmp_base = np.delete(tmp_base,rejectOutlier,axis=0)
 # dat['ampOfSaccade'] = [np.mean(e) if len(e)>0 else 0 for e in d_sc]   
 # dat['numOfSaccade'] = [len(e) for e in d_sc]   
 
-################## microsaccade ##########################
+#%% ################# microsaccade ##########################
 # gazeX = np.array(dat['gazeX'].copy())
 # gazeY = np.array(dat['gazeY'].copy())
 # gazeY[gazeY<0]=0
@@ -322,7 +327,7 @@ tmp_base = np.delete(tmp_base,rejectOutlier,axis=0)
 del dat["gazeX"], dat["gazeY"],dat['Blink'],dat['Saccade']
 mmName = list(dat.keys())
 
-################## NAN reject ##########################
+#%% ################# NAN reject ##########################
 rejectNAN=[]
 for mm in mmName:
     ind = np.argwhere(np.isnan(np.array(dat[mm])) == True)
@@ -335,7 +340,7 @@ y = np.delete(y,rejectNAN,axis=0)
 for mm in mmName:
     dat[mm] = [d for i,d in enumerate(dat[mm]) if not i in rejectNAN]
 
-################## reject subject (N < 40%) ##########################
+#%% ################# reject subject (N < 40%) ##########################
 
 reject=[]
 NUM_TRIAL = 80
@@ -367,14 +372,14 @@ y = np.delete(y,rejectSub,axis=0)
 for mm in mmName:
     dat[mm] = [d for i,d in enumerate(dat[mm]) if not i in rejectSub]
   
-################## baseline ##########################
+#%% ################# baseline ##########################
 diam = np.array(dat['PDR'].copy())
 diam = np.mean(diam[:,-1000:],axis=1).reshape(len(diam),1)
 
 dat['PDR_size'] = [np.mean(p) for p in diam.tolist()]
 
 
-################## trial number ##########################
+#%% ################# trial number ##########################
 dat['numOfTrial'] = np.zeros(len(dat['PDR']))   
                       
 for iSub in np.arange(1,max(dat['sub'])+1):
@@ -388,7 +393,7 @@ ave = 1-(np.array(numOftrials)/np.array(original_numOfTrial))
 print('rejected num ave = ' + str(round(np.mean(ave),3)) + ', sd = ' + str(round(np.std(ave),3)))
 
 
-################ number of dilation/constriction events ##########################
+#%% ############## number of dilation/constriction events ##########################
 
 test_y = moving_avg(y.copy(),1000)
 fs = 1000
@@ -492,7 +497,7 @@ for mm in mmName:
     if not isinstance(dat[mm],list):
         dat[mm] = dat[mm].tolist()
 
-################ data plot ##########################
+#%% ############### data plot ##########################
 
 import pandas as pd
 df = pd.DataFrame()
@@ -533,7 +538,7 @@ for i in range(3):
                  xerr=None, fmt="o", ms=2.0, elinewidth=1.0, ecolor='k', capsize=6.0)
 plt.title('Task duration')
 
-################## Data save ##########################
+#%% ################ Data save ##########################
 if not cfg['mmFlag'] and not cfg['normFlag']:
     with open(os.path.join(saveFileLocs + "data_au.json"),"w") as f:
             json.dump(dat,f)

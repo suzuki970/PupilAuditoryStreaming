@@ -1,9 +1,8 @@
-
 import sys
 import os
 import pprint
 
-sys.path.append('/Volumes/GoogleDrive/My Drive/PupilAnalysisToolbox/python/preprocessing/lib')
+sys.path.append('../../../../../GoogleDrive/PupilAnalysisToolbox/python/preprocessing/lib')
 pprint.pprint(sys.path)
 
 import numpy as np
