@@ -225,11 +225,19 @@ for ev,indices in zip(events['event'],events['indices']):
             # plt.plot(indices,i,'ko',markersize=1,alpha=0.5)
             rateC[i] = 1
             
+    tmp = rateD[2000:4000].sum()
+    events['dilation_time_-2s-0s'].append(tmp)
+    tmp = rateD[3000:4000].sum()
+    events['dilation_time_-1s-0s'].append(tmp)
     tmp = rateD[2000:3000].sum()
-    events['dilation_time'].append(tmp)
-    
+    events['dilation_time_-2s--1s'].append(tmp)
+   
+    tmp = rateC[2000:4000].sum()
+    events['constriction_time_-2s-0s'].append(tmp)
+    tmp = rateC[3000:4000].sum()
+    events['constriction_time_-1s-0s'].append(tmp)
     tmp = rateC[2000:3000].sum()
-    events['constriction_time'].append(tmp)
+    events['constriction_time_-2s--1s'].append(tmp)
         
 events["responses_norm"] = np.float32(np.array(events["responses"]))
 for iSub in np.unique(events['sub']):
@@ -264,11 +272,11 @@ events['Baseline'] = diam.tolist()
 
 # %% ################ save file ##########################
 if not cfg['mmFlag'] and not cfg['normFlag']:
-    with open(os.path.join(saveFileLocs + "PDPCevents_before2s_au.json"),"w") as f:
+    with open(os.path.join(saveFileLocs + "PDPCevents_before_au.json"),"w") as f:
             json.dump(events,f)
 
 elif cfg['mmFlag']:
-    with open(os.path.join(saveFileLocs + "PDPCevents_before2s_mm.json"),"w") as f:
+    with open(os.path.join(saveFileLocs + "PDPCevents_before_mm.json"),"w") as f:
             json.dump(events,f)
 
         

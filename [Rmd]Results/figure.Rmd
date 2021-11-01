@@ -500,15 +500,6 @@ if(mmFlg){
   data=fromJSON(file="../[Python]PreProcessing/Exp1/data/PDPCevents.json")
 }
 
-# if(mmFlg){
-#   data=fromJSON(file="../[Python]PreProcessing/Exp1/data/PDPCevents_before2s_mm.json")
-# }else if(auFlg){
-#   data=fromJSON(file="../[Python]PreProcessing/Exp1/data/PDPCevents_before2s_au.json")
-# }else{
-#   data=fromJSON(file="../[Python]PreProcessing/Exp1/data/PDPCevents_before2s.json")
-# }
-
-
 dat <- list(matrix(unlist(data$constriction),nrow=length(data$constriction),byrow=T),
             matrix(unlist(data$dilation),nrow=length(data$dilation),byrow=T))
 
@@ -549,6 +540,9 @@ ind_data_e1 = data.frame(
   sub = rep(data$sub,2),
   numOfSwitch = rep(data$numOfSwitch,2),
   data_y = c(data$dilation_time,data$constriction_time),
+  data_y_bef2s_0s = c(data$dilation_time_bef2s_0s,data$constriction_time_bef2s_0s),
+  data_y_bef1s_0s = c(data$dilation_time_bef1s_0s,data$constriction_time_time_bef1s_0s),
+  data_y_bef2s_1s = c(data$dilation_time_bef2s_1s,data$constriction_time_bef2s_1s),
   events = rep(c('dilation','constriction'),times=c(length(data$sub),length(data$sub))),
   # baseline = data$Baseline,
   exp = 'Exp1'
@@ -565,13 +559,6 @@ if(mmFlg){
 }else{
   data=fromJSON(file="../[Python]PreProcessing/Exp2/data/PDPCevents.json")
 }
-# if(mmFlg){
-#   data=fromJSON(file="../[Python]PreProcessing/Exp2/data/PDPCevents_before2s_mm.json")
-# }else if(auFlg){
-#   data=fromJSON(file="../[Python]PreProcessing/Exp2/data/PDPCevents_before2s_au.json")
-# }else{
-#   data=fromJSON(file="../[Python]PreProcessing/Exp2/data/PDPCevents_before2s.json")
-# }
 
 dat <- list(matrix(unlist(data$constriction),nrow=length(data$constriction),byrow=T),
             matrix(unlist(data$dilation),nrow=length(data$dilation),byrow=T))
@@ -604,6 +591,9 @@ ind_data_e2 = data.frame(
   sub = rep(data$sub,2),
   numOfSwitch = rep(data$responses,2),
   data_y = c(data$dilation_time,data$constriction_time),
+  data_y_bef2s_0s = c(data$dilation_time_bef2s_0s,data$constriction_time_bef2s_0s),
+  data_y_bef1s_0s = c(data$dilation_time_bef1s_0s,data$constriction_time_time_bef1s_0s),
+  data_y_bef2s_1s = c(data$dilation_time_bef2s_1s,data$constriction_time_bef2s_1s),
   events = rep(c('dilation','constriction'),times=c(length(data$sub),length(data$sub))),
   # baseline = data$Baseline,
   exp = 'Exp2'
@@ -646,7 +636,6 @@ ind_data = rbind(ind_data_e1,ind_data_e2)
 ind_data$numOfSwitch = g3[as.integer(ind_data$numOfSwitch)+1]
 
 # ind_data = ind_data[,c(1,2,4,6,5,3)]
-ind_data = ind_data[,c(1,2,4,5,3)]
 ind_data$numOfSwitch = factor(ind_data$numOfSwitch,c('unswitch','switch'))
 
 
@@ -678,6 +667,7 @@ ind_data$numOfSwitch = factor(ind_data$numOfSwitch,c('unswitch','switch'))
 config$label_y = '# of PD events'
 config$label_x = ''
 
+ind_data$data_y = ind_data$data_y_bef2s_0s
 data_anovaPD = aggregate( data_y ~ sub*numOfSwitch*exp, data = ind_data[ind_data$events == 'dilation',], FUN = "mean")
 data_anovaPC = aggregate( data_y ~ sub*numOfSwitch*exp, data = ind_data[ind_data$events == 'constriction',], FUN = "mean")
 
@@ -692,6 +682,8 @@ for(iSub in reject){
   data_anovaPC = data_anovaPC[data_anovaPC$sub != iSub,]
 }
 
+
+# ind_data = ind_data[,c(1,2,4,5,3)]
 anovakun(data_anovaPD,"sAB",long=T, peta=T,gg=T)
 anovakun(data_anovaPC,"sAB",long=T, peta=T,gg=T)
 
@@ -700,17 +692,17 @@ anovakun(data_anovaPC,"sAB",long=T, peta=T,gg=T)
 p = dispBoxGraph(data_anovaPD,config,c("numOfSwitch","exp"))+
   facet_grid(. ~ exp )
 
-config$ylim = round(seq(1,2.5,0.5),2)
-config$ylim_stride = 0.05
-config$xlim = round(seq(1,2,1),2)
-config$xlim_stride = 0.5
+# config$ylim = round(seq(1,2.5,0.5),2)
+# config$ylim_stride = 0.05
+# config$xlim = round(seq(1,2,1),2)
+# config$xlim_stride = 0.5
 
 # config$ylim = round(seq(0,1,0.25),2)
 # config$ylim_stride = 0.02
 # config$xlim = round(seq(1,2,1),2)
 # config$xlim_stride = 0.5
 # 
-p = setEmptyStyle(p,config)
+# p = setEmptyStyle(p,config)
 
 eval(parse(text=paste("p", countFigNum ,"=p", sep="")))
 countFigNum = countFigNum+1

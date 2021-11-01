@@ -191,12 +191,12 @@ for iTrial in np.arange(test_y.shape[0]):
 events['sub'] = dat['sub']
 events['numOfSwitch'] = dat['numOfSwitch']
 
-events['dilation'] = []
-events['constriction'] = []
-events['dilation_time'] = []
-events['constriction_time'] = []
-# events['sub_time'] =[]
-# events['condition_time'] =[]
+for varName in ['dilation','constriction','dilation_time','constriction_time']:
+    events[varName] = []
+
+for varName in ['dilation_time_bef','constriction_time_bef']:
+    for t in ['2s_0s','1s_0s','2s_1s']:
+        events[varName+t] = []
        
 for indSwitch in np.arange(3):
     for iSub in np.unique(events['sub']):
@@ -240,6 +240,21 @@ for ev,indices in zip(events['event'],events['indices']):
     tmp = rateC[4000:-1000].sum()
     events['constriction_time'].append(tmp)
  
+    tmp = rateD[2000:4000].sum()
+    events['dilation_time_bef2s_0s'].append(tmp)
+    tmp = rateD[3000:4000].sum()
+    events['dilation_time_bef1s_0s'].append(tmp)
+    tmp = rateD[2000:3000].sum()
+    events['dilation_time_bef2s_1s'].append(tmp)
+   
+    tmp = rateC[2000:4000].sum()
+    events['constriction_time_bef2s_0s'].append(tmp)
+    tmp = rateC[3000:4000].sum()
+    events['constriction_time_bef1s_0s'].append(tmp)
+    tmp = rateC[2000:3000].sum()
+    events['constriction_time_bef2s_1s'].append(tmp)
+        
+    
 events["numOfSwitch_norm"] = np.float32(np.array(events["numOfSwitch"]))
 for iSub in np.unique(events['sub']):
     ind = np.argwhere(np.array(events["sub"] == iSub)).reshape(-1)

@@ -46,7 +46,7 @@ cfg={'THRES_DIFF':10,
      'visualization':False
      }
 
-folderName = folderName[0:1]
+
 for iSub,subName in enumerate(folderName):
     fileName = glob.glob(os.path.join(subName+'/*.asc'))
  
