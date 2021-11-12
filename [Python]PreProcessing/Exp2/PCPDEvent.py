@@ -6,11 +6,7 @@ Created on Fri Apr  9 15:07:55 2021
 @author: yutasuzuki
 """
 
-import sys
 import os
-
-sys.path.append('../../../../../GoogleDrive/PupilAnalysisToolbox/python/preprocessing/lib')
-
 import numpy as np
 import matplotlib.pyplot as plt
 from pre_processing import pre_processing,re_sampling,getNearestValue,moving_avg
@@ -44,8 +40,8 @@ cfg={
 'METHOD':1, #subtraction
 'FLAG_LOWPASS':False,
 'THRES_DIFF':0.04,
-'mmFlag':True,
-'normFlag':False
+'mmFlag':False,
+'normFlag':True
 }
 
 saveFileLocs = './data/'
@@ -54,10 +50,10 @@ saveFileLocs = './data/'
 if not cfg['mmFlag'] and not cfg['normFlag']:
     f = open(os.path.join(str(saveFileLocs + 'data_original_au.json')))    
     cfg['THRES_DIFF'] = 20
-elif cfg['mmFlag']:
+elif cfg['mmFlag'] and not cfg['normFlag']:
     f = open(os.path.join(str(saveFileLocs + 'data_original_mm.json')))
 else:
-    f = open(os.path.join(str(saveFileLocs + 'data_original.json')))
+    f = open(os.path.join(str(saveFileLocs + 'data_original_norm.json')))
 
 
 dat = json.load(f)
@@ -75,6 +71,21 @@ tmp_base = tmp_base.reshape(len(tmp_base),1)
 
 cfg['WID_BASELINE'] = np.concatenate([-tmp_base-1,-tmp_base],1)
 
+#%%# ########## block index ###################
+block_ind = []
+for iSub in np.unique(dat['sub']):
+    
+    ind = np.argwhere(dat['sub'] == np.int64(iSub)).reshape(-1)
+    x = np.array(dat["data_x"])[ind].reshape(-1)
+    x = [int(t) for t in x.tolist()]
+    x = np.array(x).reshape(-1)
+    
+    for iSession,se_ind in enumerate(dat['start_end'][np.int64(iSub-1)]):
+        for i in np.arange(len(x)):
+            if x[i] > se_ind[0] and x[i] < se_ind[1]:
+                block_ind.append(iSession)
+dat['block_ind'] = block_ind
+    
 ## ########## answer array move behind ###################
 switch = np.array(dat['responses'].copy())
 rt = np.array(dat['RT'])
@@ -97,7 +108,7 @@ dat['RT'] = rt.copy().tolist()
 
 tmp_rejectNum = np.argwhere(switch == -1).reshape(-1)
 
-################## artifact rejection ##########################
+#%%# ##########artifact rejection ##########################
 
 y,rejectNum = pre_processing(np.array(dat['PDR_baseline'].copy()),cfg)
 
@@ -110,7 +121,7 @@ for mm in mmName:
  
 y = np.delete(y,rejectNum,axis=0)
 
-################## Outlier ##########################
+#%%# ##########Outlier ##########################
 
 max_val = [max(abs(y[i,])) for i in np.arange(y.shape[0])]
 fx = np.diff(y)
@@ -126,7 +137,7 @@ for mm in mmName:
 
 y = np.delete(y,rejectOutlier,axis=0)
 
-################## reject subject (N < 40%) ##########################
+#%%# ##########reject subject (N < 40%) ##########################
 reject=[]
 NUM_TRIAL = 80
 numOftrials = []
@@ -186,15 +197,12 @@ for iTrial in np.arange(test_y.shape[0]):
 
 events['sub'] = dat['sub']
 events['responses'] = dat['responses']
+events['block_ind'] = dat['block_ind']
 
-
-for varName in ['dilation','constriction','dilation_time','constriction_time']:
+for varName in ['dilation','constriction','dilation_time','constriction_time','dilation_time_each','constriction_time_each']:
     events[varName] = []
 
-for varName in ['dilation_time_bef','constriction_time_bef']:
-    for t in ['2s_0s','1s_0s','2s_1s']:
-        events[varName+t] = []
-        
+   
 for indSwitch in np.arange(2):
     for iSub in np.unique(events['sub']):
         ind = np.argwhere((np.array(events['responses']) == indSwitch) &
@@ -233,20 +241,30 @@ for ev,indices in zip(events['event'],events['indices']):
     tmp = rateC[4000:-1000].sum()
     events['constriction_time'].append(tmp)
         
-    tmp = rateD[2000:4000].sum()
-    events['dilation_time_bef2s_0s'].append(tmp)
-    tmp = rateD[3000:4000].sum()
-    events['dilation_time_bef1s_0s'].append(tmp)
-    tmp = rateD[2000:3000].sum()
-    events['dilation_time_bef2s_1s'].append(tmp)
+    # tmp = rateD[2000:4000].sum()
+    # events['dilation_time_bef2s_0s'].append(tmp)
+    # tmp = rateD[3000:4000].sum()
+    # events['dilation_time_bef1s_0s'].append(tmp)
+    # tmp = rateD[2000:3000].sum()
+    # events['dilation_time_bef2s_1s'].append(tmp)
    
-    tmp = rateC[2000:4000].sum()
-    events['constriction_time_bef2s_0s'].append(tmp)
-    tmp = rateC[3000:4000].sum()
-    events['constriction_time_bef1s_0s'].append(tmp)
-    tmp = rateC[2000:3000].sum()
-    events['constriction_time_bef2s_1s'].append(tmp)
-        
+    # tmp = rateC[2000:4000].sum()
+    # events['constriction_time_bef2s_0s'].append(tmp)
+    # tmp = rateC[3000:4000].sum()
+    # events['constriction_time_bef1s_0s'].append(tmp)
+    # tmp = rateC[2000:3000].sum()
+    # events['constriction_time_bef2s_1s'].append(tmp)
+                
+    tmpD = []
+    tmpC = []
+    for iTime in np.arange(0,9000,1000):
+        tmpD.append(rateD[iTime:iTime+1000].sum())
+        tmpC.append(rateC[iTime:iTime+1000].sum())
+
+    events['dilation_time_each'].append(tmpD)
+    events['constriction_time_each'].append(tmpC)
+    
+ 
 events["responses_norm"] = np.float32(np.array(events["responses"]))
 for iSub in np.unique(events['sub']):
     ind = np.argwhere(np.array(events["sub"] == iSub)).reshape(-1)
@@ -273,26 +291,161 @@ for indSwitch in np.arange(2):
     
 events['numOfTrial'] = events['numOfTrial'].tolist()
 
-# %% ################### Baseline pupil size #################################
+# %% ##%%# ##########Baseline pupil size #################################
 diam = np.array(dat['PDR'].copy())
 diam = np.mean(diam[:,-1000:],axis=1).reshape(len(diam),1)
 events['Baseline'] = diam.tolist()
 
-################## Data save ##########################
+#%%# ########## answer array move behind ###################
+bp = np.array(events['Baseline'].copy()).reshape(-1)
+
+for iSub in np.unique(events['sub']):
+    ind = np.argwhere(np.array(events['sub']) == iSub).reshape(-1)
+    tmp_bp = np.array(events['Baseline'].copy())[ind].reshape(-1)
+    tmp_bp = np.r_[-100,tmp_bp]
+    tmp_bp = tmp_bp[:-1]
+
+    bp[ind] = tmp_bp
+
+
+events['Baseline_aft'] = bp.copy().tolist()
+tmp_rejectNum = np.argwhere(bp == -100).reshape(-1)
+
+mmName = list(events.keys())
+for mm in mmName:
+    events[mm] = [d for i,d in enumerate(events[mm]) if not i in tmp_rejectNum]
+    
+#%% ################# Data save ##########################
 if not cfg['mmFlag'] and not cfg['normFlag']:
     with open(os.path.join(saveFileLocs + "PDPCevents_au.json"),"w") as f:
             json.dump(events,f)
 
-elif cfg['mmFlag']:
+elif cfg['mmFlag'] and not cfg['normFlag']:
     with open(os.path.join(saveFileLocs + "PDPCevents_mm.json"),"w") as f:
             json.dump(events,f)
-            
-# with open(os.path.join(saveFileLocs + "PDPCevents.json"),"w") as f:
-#         json.dump(events,f)
-        
+else:           
+    with open(os.path.join(saveFileLocs + "PDPCevents_norm.json"),"w") as f:
+            json.dump(events,f)
+  
+    
+#%%# ########## plot #################################
 numOfSub = len(np.unique(events['sub']))
 plt.figure(figsize=(6,8))
 y = np.array(events['dilation_time'])
 for i in np.arange(2):
     ind = np.argwhere(np.array(events['responses']) == i)       
     plt.plot(i,y[ind].mean(axis=0),'o',linewidth=1,alpha=0.5)
+    
+    
+#%%# ########## CCF ################%%# ##########   
+# plt.figure(figsize=(6,8))
+# tmp = []
+# for iSub in np.unique(events['sub']):
+    
+#     sig1 = sp.zscore(np.array(events["dilation_time"])[np.array(events['sub'])==iSub]).reshape(-1)  
+#     # sig2 = sp.zscore(np.array(events["Baseline"])[np.array(events['sub'])==iSub]).reshape(-1)
+#     sig2 = np.array(events["Baseline"])[np.array(events['sub'])==iSub].reshape(-1)
+#     # sig2 = sp.zscore(np.array(events["numOfSwitch"])[np.array(events['sub'])==iSub]).reshape(-1)
+    
+#     sig1_corrected = re_sampling(sig1.reshape(1,len(sig1)),80).reshape(-1)
+#     sig2_corrected = re_sampling(sig2.reshape(1,len(sig2)),80).reshape(-1)
+  
+#     npts = len(sig1_corrected)
+    
+#     ccov = np.correlate(sig1_corrected, sig2_corrected, mode='full')
+#     ccov = ccov / (npts * sig1_corrected.std() * sig2_corrected.std())
+
+#     tmp.append(ccov)
+
+# plt.plot(np.array(tmp).mean(axis=0))
+
+# resLen=80
+# data_cross_corr = {'raw':[],'raw_queue':[],'randFlag':[],
+#                    'shuffle_trial':[],'sub':[]
+#                    }
+# plt.figure(figsize=(12,12,))
+
+# for iSub in np.unique(events['sub']):
+   
+#     sig1 = sp.zscore(np.array(events["dilation_time"])[np.array(events['sub'])==iSub]).reshape(-1)  
+#     # sig1 = np.array(events["dilation_time"])[np.array(events['sub'])==iSub].reshape(-1)  
+#     sig2 = np.array(events["Baseline_aft"])[np.array(events['sub'])==iSub].reshape(-1)
+    
+#     nptsAll = len(sig1)
+    
+#     #%%# ##########cross-corr(block shuffle,whole data) ##########################
+#     ccov2 = []
+#     for v in list(itertools.permutations([0,1,2,3],4)): 
+               
+#         if v[0] == 3 and v[1] == 0 and v[2] == 1 and v[3] == 2:
+#             continue
+#         if v[0] == 2 and v[1] == 3 and v[2] == 0 and v[3] == 1:
+#             continue
+#         if v[0] == 1 and v[1] == 2 and v[2] == 3 and v[3] == 0:
+#             continue
+        
+#         block_ind = np.array(events["block_ind"])[np.array(events['sub'])==iSub].reshape(-1)
+#         ind = []
+#         for i in np.arange(4):
+#             ind = np.r_[ind,np.argwhere(block_ind == np.int64(v[i])).reshape(-1)]
+       
+#         ind = np.array([int(j) for j in ind.tolist()])
+        
+#         sig1_corrected = re_sampling(sig1[ind].reshape(1,len(sig1)),resLen).reshape(-1)
+#         sig2_corrected = re_sampling(sig2.reshape(1,len(sig2)),resLen).reshape(-1)
+#         npts = len(sig1_corrected)
+    
+#         ccov = np.correlate(sig1_corrected, sig2_corrected, mode='full')
+#         ccov = ccov / (npts * sig1_corrected.std() * sig2_corrected.std())
+        
+#         ccov2.append(ccov.tolist())
+#         data_cross_corr['sub'].append(int(iSub))
+        
+#         if v[0] == 0 and v[1] == 1 and v[2] == 2 and v[3] == 3:
+#             data_cross_corr['randFlag'].append(1)
+#             plt.subplot(5,5, iSub)
+#             plt.plot(sig1,sig2,'o')
+#         else:
+#             data_cross_corr['randFlag'].append(0)
+            
+#     data_cross_corr['raw'].extend(ccov2)
+    
+
+# data_cross_corr['lags_trial'] = np.arange(-resLen,resLen-1).tolist()
+# y = np.array(data_cross_corr['raw'])
+
+# plt.figure(figsize=(12,12,))
+
+# y1 = []
+# y2 = []
+# for iSub in np.unique(data_cross_corr['sub']):
+#     plt.subplot(5,5, iSub)
+    
+#     ind = np.argwhere((np.array(data_cross_corr['sub']) == iSub) &
+#                       (np.array(data_cross_corr['randFlag']) == 1)).reshape(-1)
+#     plt.plot(data_cross_corr['lags_trial'],y[ind,:].T,label = 'raw',alpha=0.4)
+#     y1.append(y[ind,:].reshape(-1))
+    
+#     ind = np.argwhere((np.array(data_cross_corr['sub']) == iSub) &
+#                       (np.array(data_cross_corr['randFlag']) == 0)).reshape(-1)
+#     plt.plot(data_cross_corr['lags_trial'],y[ind,:].mean(axis=0).T,label = 'raw',alpha=0.4)
+#     y2.append(y[ind,:].mean(axis=0).reshape(-1))
+#     # plt.ylim(-0.6,0.6)
+
+# plt.figure()
+# plt.plot(data_cross_corr['lags_trial'],np.array(y1).mean(axis=0),label = 'raw',alpha=0.4)
+# plt.plot(data_cross_corr['lags_trial'],np.array(y2).mean(axis=0),label = 'shuffle',alpha=0.4)
+# plt.legend()
+
+#%%# ##########Data save ##########################
+# if not cfg['mmFlag'] and not cfg['normFlag']:
+#     with open(os.path.join(saveFileLocs + "PDPCevents_CFF_au.json"),"w") as f:
+#             json.dump(data_cross_corr,f)
+
+# elif cfg['mmFlag'] and not cfg['normFlag']:
+#     with open(os.path.join(saveFileLocs + "PDPCevents_CFF_mm.json"),"w") as f:
+#             json.dump(data_cross_corr,f)
+# else:           
+#     with open(os.path.join(saveFileLocs + "PDPCevents_CFF_norm.json"),"w") as f:
+#             json.dump(data_cross_corr,f)
+            

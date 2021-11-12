@@ -47,8 +47,8 @@ cfg={
 'METHOD':1, #subtraction
 'FLAG_LOWPASS':False,
 'THRES_DIFF':0.04,
-'mmFlag':True,
-'normFlag':False
+'mmFlag':False,
+'normFlag':True
 }
 
 saveFileLocs = 'data/'
@@ -57,10 +57,10 @@ saveFileLocs = 'data/'
 if not cfg['mmFlag'] and not cfg['normFlag']:
     f = open(os.path.join(str(saveFileLocs + 'data_original_au.json')))    
     cfg['THRES_DIFF'] = 20
-elif cfg['mmFlag']:
+elif cfg['mmFlag'] and not cfg['normFlag']:
     f = open(os.path.join(str(saveFileLocs + 'data_original_mm.json')))
 else:
-    f = open(os.path.join(str(saveFileLocs + 'data_original.json')))
+    f = open(os.path.join(str(saveFileLocs + 'data_original_norm.json')))
 
 dat = json.load(f)
 f.close()
@@ -547,7 +547,10 @@ if not cfg['mmFlag'] and not cfg['normFlag']:
     with open(os.path.join(saveFileLocs + "data_au.json"),"w") as f:
             json.dump(dat,f)
 
-elif cfg['mmFlag']:
+elif cfg['mmFlag'] and not cfg['normFlag']:
     with open(os.path.join(saveFileLocs + "data_mm.json"),"w") as f:
             json.dump(dat,f)
 
+else:
+    with open(os.path.join(saveFileLocs+"data_norm.json"),"w") as f:
+            json.dump(dat,f)

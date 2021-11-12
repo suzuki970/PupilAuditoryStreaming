@@ -5,7 +5,7 @@ Created on Sat Feb  6 14:58:27 2021
 
 @author: yutasuzuki
 """
-
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from pre_processing import pre_processing,re_sampling,getNearestValue
@@ -40,8 +40,8 @@ cfg={
 'METHOD':1, #subtraction
 'FLAG_LOWPASS':False,
 'THRES_DIFF':0.04,
-'mmFlag':True,
-'normFlag':False
+'mmFlag':False,
+'normFlag':True
 # 'THRES_DIFF':300
 }
 
@@ -51,10 +51,10 @@ saveFileLocs = 'data/'
 if not cfg['mmFlag'] and not cfg['normFlag']:
     f = open(os.path.join(str(saveFileLocs + 'data_original_au.json')))    
     cfg['THRES_DIFF'] = 20
-elif cfg['mmFlag']:
+elif cfg['mmFlag'] and not cfg['normFlag']:
     f = open(os.path.join(str(saveFileLocs + 'data_original_mm.json')))
 else:
-    f = open(os.path.join(str(saveFileLocs + 'data_original.json')))
+    f = open(os.path.join(str(saveFileLocs + 'data_original_norm.json')))
 
 
 dat = json.load(f)
@@ -161,10 +161,10 @@ if not cfg['mmFlag'] and not cfg['normFlag']:
     with open(os.path.join(saveFileLocs + "data_tertile_au.json"),"w") as f:
             json.dump(dat,f)
 
-elif cfg['mmFlag']:
+elif cfg['mmFlag'] and not cfg['normFlag']:
     with open(os.path.join(saveFileLocs + "data_tertile_mm.json"),"w") as f:
             json.dump(dat,f)
 
-
-# with open(os.path.join(saveFileLocs+"data_tertile.json"),"w") as f:
-#         json.dump(dat,f)
+else:
+    with open(os.path.join(saveFileLocs + "data_tertile_norm.json"),"w") as f:
+            json.dump(dat,f)

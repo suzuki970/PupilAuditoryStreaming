@@ -49,7 +49,7 @@ if(mmFlg){
 }else if(auFlg){
   load("./data/Exp1/figure2_au.rda")
 }else{
-  load("./data/Exp1/figure2.rda")
+  load("./data/Exp1/figure2_norm.rda")
 }
 
 
@@ -109,7 +109,7 @@ if(mmFlg){
 }else if(auFlg){
   data = fromJSON(file="../[Python]PreProcessing/Exp1/data/data_tertile_au.json")
 }else{
-  data = fromJSON(file="../[Python]PreProcessing/Exp1/data/data_tertile.json")
+  data = fromJSON(file="../[Python]PreProcessing/Exp1/data/data_tertile_norm.json")
 }
 
 data_tertile = data.frame(
@@ -158,7 +158,7 @@ anovaData$Size_sorted = NULL
 
 p <- dispLineGraph(data_tertile,config,c("Tertile"))+
   geom_line(data = data_curve,aes(x=x,y=yy),color='gray')+
-  ggtitle("Normalized Baseline pupil size")+
+  # ggtitle("Normalized Baseline pupil size")+
   theme(
     axis.text.y.right = element_text(color = "#F8766D"),
     axis.line.y.right = element_line(color = "#F8766D"),
@@ -317,7 +317,7 @@ if(mmFlg){
 }else if(auFlg){
   load("./data/Exp2/figure3_au.rda")
 }else{
-  load("./data/Exp2/figure3.rda")
+  load("./data/Exp2/figure3_norm.rda")
 }
 
 data_res$Responses = go1[data_res$Responses+1]
@@ -357,7 +357,7 @@ sigPair = cbind(sigPair,forDrawingSigANOVA[2,]['p.col'])
 # p <- dispLineGraph(data_res,config,c("Responses"))
 
 if(mmFlg){
- p <- drawSignificance(p,sigPair,7.5,0.05,nsFlag)
+  p <- drawSignificance(p,sigPair,7.5,0.05,nsFlag)
   config$ylim = round(seq(3,7.5,0.5),2)
   config$ylim_stride = 0.2
   config$xlim = round(seq(1,2,1),2)
@@ -392,7 +392,8 @@ if(mmFlg){
 }else if(auFlg){
   data = fromJSON(file="../[Python]PreProcessing/Exp2/data/data_tertile_au.json")
 }else{
-  data = fromJSON(file="../[Python]PreProcessing/Exp2/data/data_tertile20210610.json")
+  # data = fromJSON(file="../[Python]PreProcessing/Exp2/data/data_tertile20210610.json")
+  data = fromJSON(file="../[Python]PreProcessing/Exp2/data/data_tertile_norm.json")
 }
 
 data_tertile = data.frame(
@@ -411,7 +412,7 @@ config = list(
   stride = 0.1,
   label_x = "Pupil response bin",
   label_y = "Averaged # of switch",
-  title = "Tertile"
+  title = ""
 )
 x = as.numeric(data_tertile$Tertile)
 y = data_tertile$responses_sorted
@@ -497,11 +498,8 @@ if(mmFlg){
 }else if(auFlg){
   data=fromJSON(file="../[Python]PreProcessing/Exp1/data/PDPCevents_au.json")
 }else{
-  data=fromJSON(file="../[Python]PreProcessing/Exp1/data/PDPCevents.json")
+  data=fromJSON(file="../[Python]PreProcessing/Exp1/data/PDPCevents_norm.json")
 }
-
-dat <- list(matrix(unlist(data$constriction),nrow=length(data$constriction),byrow=T),
-            matrix(unlist(data$dilation),nrow=length(data$dilation),byrow=T))
 
 indices = NULL
 events = NULL
@@ -515,14 +513,11 @@ for(i in 1:length(data$event)){
   events = rbind(events, matrix(data[["event"]][[i]]))
   sub = rbind(sub,matrix(rep(data$sub[i],length(data[["indices"]][[i]]))))
   numOfSwitch = rbind(numOfSwitch,matrix(rep(data$numOfSwitch[i],length(data[["indices"]][[i]]))))
-  # baseline = rbind(baseline,matrix(rep(data$Baseline[i],length(data[["indices"]][[i]]))))
   numOfTrial = rbind(numOfTrial,matrix(rep(data$numOfTrial[i],length(data[["indices"]][[i]]))))
 }
 
-# data$numOfTrial[i]
 g1 = c('constriction','dilation')
 g2 = c('0','1','2+')
-# g2 = c('0','1')
 g3 = c('unswitch','switch','switch')
 
 ind_data_e1_raster = data.frame(
@@ -536,15 +531,28 @@ ind_data_e1_raster = data.frame(
 ind_data_e1_raster[ind_data_e1_raster$numOfSwitch > length(g2)-2,]$numOfSwitch = length(g2)-1
 ind_data_e1_raster$numOfSwitch = g2[ind_data_e1_raster$numOfSwitch+1]
 
-ind_data_e1 = data.frame(
-  sub = rep(data$sub,2),
-  numOfSwitch = rep(data$numOfSwitch,2),
-  data_y = c(data$dilation_time,data$constriction_time),
-  data_y_bef2s_0s = c(data$dilation_time_bef2s_0s,data$constriction_time_bef2s_0s),
-  data_y_bef1s_0s = c(data$dilation_time_bef1s_0s,data$constriction_time_time_bef1s_0s),
-  data_y_bef2s_1s = c(data$dilation_time_bef2s_1s,data$constriction_time_bef2s_1s),
-  events = rep(c('dilation','constriction'),times=c(length(data$sub),length(data$sub))),
-  # baseline = data$Baseline,
+# ind_data_e1 = data.frame(
+#   sub = rep(data$sub,2),
+#   numOfSwitch = rep(data$numOfSwitch,2),
+#   data_y = c(data$dilation_time,data$constriction_time),
+#   events = rep(c('dilation','constriction'),times=c(length(data$sub),length(data$sub))),
+#   baseline = data$Baseline,
+#   exp = 'Exp1'
+# )
+
+tmpD = matrix(unlist(data$dilation_time_each),nrow=length(data$dilation_time_each),byrow=T)
+tmpC = matrix(unlist(data$constriction_time_each),nrow=length(data$constriction_time_each),byrow=T)
+numOfTrial = dim(tmpD)[1]
+lengthOfTime = dim(tmpD)[2]
+
+ind_data_e1 <- data.frame(
+  sub =  rep( data$sub, times = rep( lengthOfTime, numOfTrial)),
+  data_y = c(t(matrix(t(tmpD),nrow=1)),t(matrix(t(tmpC),nrow=1))),
+  data_x = 1:9,
+  numOfTrial = rep( 1:numOfTrial, times = rep( lengthOfTime, numOfTrial)),
+  numOfSwitch =  rep( data$numOfSwitch, times = rep( lengthOfTime, numOfTrial)),
+  baseline =  rep( data$Baseline_aft, times = rep( lengthOfTime, numOfTrial)),
+  events =  c(rep( rep('dilation',numOfTrial), times = rep( lengthOfTime, numOfTrial)),rep( rep('constriction',numOfTrial), times = rep( lengthOfTime, numOfTrial))),
   exp = 'Exp1'
 )
 
@@ -557,7 +565,7 @@ if(mmFlg){
 }else if(auFlg){
   data=fromJSON(file="../[Python]PreProcessing/Exp2/data/PDPCevents_au.json")
 }else{
-  data=fromJSON(file="../[Python]PreProcessing/Exp2/data/PDPCevents.json")
+  data=fromJSON(file="../[Python]PreProcessing/Exp2/data/PDPCevents_norm.json")
 }
 
 dat <- list(matrix(unlist(data$constriction),nrow=length(data$constriction),byrow=T),
@@ -587,17 +595,30 @@ ind_data_e2_raster = data.frame(
   exp = 'Exp2'
 )
 
-ind_data_e2 = data.frame(
-  sub = rep(data$sub,2),
-  numOfSwitch = rep(data$responses,2),
-  data_y = c(data$dilation_time,data$constriction_time),
-  data_y_bef2s_0s = c(data$dilation_time_bef2s_0s,data$constriction_time_bef2s_0s),
-  data_y_bef1s_0s = c(data$dilation_time_bef1s_0s,data$constriction_time_time_bef1s_0s),
-  data_y_bef2s_1s = c(data$dilation_time_bef2s_1s,data$constriction_time_bef2s_1s),
-  events = rep(c('dilation','constriction'),times=c(length(data$sub),length(data$sub))),
-  # baseline = data$Baseline,
+tmpD = matrix(unlist(data$dilation_time_each),nrow=length(data$dilation_time_each),byrow=T)
+tmpC = matrix(unlist(data$constriction_time_each),nrow=length(data$constriction_time_each),byrow=T)
+numOfTrial = dim(tmpD)[1]
+lengthOfTime = dim(tmpD)[2]
+
+ind_data_e2 <- data.frame(
+  sub =  rep( data$sub, times = rep( lengthOfTime, numOfTrial)),
+  data_y = c(t(matrix(t(tmpD),nrow=1)),t(matrix(t(tmpC),nrow=1))),
+  data_x = 1:9,
+  numOfTrial = rep( 1:numOfTrial, times = rep( lengthOfTime, numOfTrial)),
+  numOfSwitch =  rep( data$responses, times = rep( lengthOfTime, numOfTrial)),
+  baseline =  rep( data$Baseline_aft, times = rep( lengthOfTime, numOfTrial)),
+  events =  c(rep( rep('dilation',numOfTrial), times = rep( lengthOfTime, numOfTrial)),rep( rep('constriction',numOfTrial), times = rep( lengthOfTime, numOfTrial))),
   exp = 'Exp2'
 )
+
+# ind_data_e2 = data.frame(
+#   sub = rep(data$sub,2),
+#   numOfSwitch = rep(data$responses,2),
+#   data_y = c(data$dilation_time,data$constriction_time),
+#   events = rep(c('dilation','constriction'),times=c(length(data$sub),length(data$sub))),
+#   baseline = data$Baseline,
+#   exp = 'Exp2'
+# )
 numOfSub_e2 = length(unique(ind_data_e2$sub))
 
 # ####### Figure 5A(raster) #####
@@ -635,45 +656,26 @@ countFigNum = countFigNum+1
 ind_data = rbind(ind_data_e1,ind_data_e2)
 ind_data$numOfSwitch = g3[as.integer(ind_data$numOfSwitch)+1]
 
-# ind_data = ind_data[,c(1,2,4,6,5,3)]
 ind_data$numOfSwitch = factor(ind_data$numOfSwitch,c('unswitch','switch'))
+ind_data = ind_data[ind_data$data_x > 4 & ind_data$data_x < 9,]
+g = c("","","-2 - -1s","-1 - 0s","0 - 1s","1 - 2s","2 - 3s","3 - 4s","4 - 5s")
+ind_data$data_x = g[ind_data$data_x]
+ind_data$data_x = factor(ind_data$data_x,levels = c("-2 - -1s","-1 - 0s","0 - 1s","1 - 2s","2 - 3s","3 - 4s","4 - 5s"))
 
-
-# baseline PD corr. -----------------------------------------------------------------
-# config$label_y = 'Baseline pupil size [mm]'
-# config$label_x = 'number of PD events'
-# t = aggregate( baseline ~ sub*data_y, data =ind_data[ind_data$events == 'dilation',], FUN = "mean")
-# t$numEvents = t$data_y
-# t$numEvents = factor(t$numEvents,levels=unique(t$numEvents))
-# t$data_y = t$baseline
-# t$baseline = NULL
-# t = t[,c(1,3,2)]
-# 
-# anovakun(t,"sA",long=T, peta=T,gg=T)
-# 
-# p = dispBoxGraph(t,config,c("numEvents"))
-# 
-# config$ylim = round(seq(3.5,7.5,0.5),2)
-# config$ylim_stride = 0.05
-# config$xlim = round(seq(1,6,1),2)
-# config$xlim_stride = 0.5
-# 
-# p = setEmptyStyle(p,config)
-# 
-# eval(parse(text=paste("p", countFigNum ,"=p", sep="")))
-# countFigNum = countFigNum+1
+ind_data = aggregate( data_y ~ sub*numOfSwitch*numOfTrial*exp*events, data =ind_data, FUN = "sum")
+ind_data = aggregate( data_y ~ sub*numOfSwitch*exp*events, data = ind_data, FUN = "mean")
 
 # Figure 5B(average -----------------------------------------------------------------
 config$label_y = '# of PD events'
 config$label_x = ''
 
-ind_data$data_y = ind_data$data_y_bef2s_0s
-data_anovaPD = aggregate( data_y ~ sub*numOfSwitch*exp, data = ind_data[ind_data$events == 'dilation',], FUN = "mean")
-data_anovaPC = aggregate( data_y ~ sub*numOfSwitch*exp, data = ind_data[ind_data$events == 'constriction',], FUN = "mean")
+data_anovaPD = ind_data[ind_data$events == 'dilation',]
+data_anovaPC = ind_data[ind_data$events == 'constriction',]
 
 reject = NULL
+th = dim(data_anovaPD[data_anovaPD$sub == 1,])[1]
 for(iSub in unique(data_anovaPD$sub)){
-  if(dim(data_anovaPD[data_anovaPD$sub == iSub,])[1] != 4){
+  if(dim(data_anovaPD[data_anovaPD$sub == iSub,])[1] != th){
     reject = rbind(reject,iSub)
   }
 }
@@ -682,8 +684,9 @@ for(iSub in reject){
   data_anovaPC = data_anovaPC[data_anovaPC$sub != iSub,]
 }
 
+data_anovaPD$events = NULL
+data_anovaPC$events = NULL
 
-# ind_data = ind_data[,c(1,2,4,5,3)]
 anovakun(data_anovaPD,"sAB",long=T, peta=T,gg=T)
 anovakun(data_anovaPC,"sAB",long=T, peta=T,gg=T)
 
@@ -692,17 +695,17 @@ anovakun(data_anovaPC,"sAB",long=T, peta=T,gg=T)
 p = dispBoxGraph(data_anovaPD,config,c("numOfSwitch","exp"))+
   facet_grid(. ~ exp )
 
-# config$ylim = round(seq(1,2.5,0.5),2)
-# config$ylim_stride = 0.05
-# config$xlim = round(seq(1,2,1),2)
-# config$xlim_stride = 0.5
+config$ylim = round(seq(1,2.5,0.5),2)
+config$ylim_stride = 0.05
+config$xlim = round(seq(1,2,1),2)
+config$xlim_stride = 0.5
 
 # config$ylim = round(seq(0,1,0.25),2)
 # config$ylim_stride = 0.02
 # config$xlim = round(seq(1,2,1),2)
 # config$xlim_stride = 0.5
-# 
-# p = setEmptyStyle(p,config)
+
+p = setEmptyStyle(p,config)
 
 eval(parse(text=paste("p", countFigNum ,"=p", sep="")))
 countFigNum = countFigNum+1
@@ -716,26 +719,17 @@ save(data_anovaPD,data_anovaPC,
 p = combineGraphs(seq(1,countFigNum-1),'p',NULL)
 plot(p)
 if(figOutput){
-  # width_fig=10
-  # height_fig=15
-  # CairoFonts(regular = "Times","Times")
-  # CairoPDF(file="./figure/Figure4A",
-  #          width=width_fig, height=height_fig)
-  # print(p1)
-  # dev.off()
-  # 
-  # width_fig=5
-  # height_fig=5
-  # CairoFonts(regular = "Times","Times")
-  # CairoPDF(file="./figure/Figure4B",
-  #          width=width_fig, height=height_fig)
-  # print(p2)
-  # dev.off()
-  
+  width_fig=10
+  height_fig=15
+  CairoFonts(regular = "Times","Times")
+  CairoPDF(file="./figure/Figure4A",
+           width=width_fig, height=height_fig)
+  print(p1)
+  dev.off()
   width_fig=8
   height_fig=5
   CairoFonts(regular = "Times","Times")
-  CairoPDF(file="./figure/Figure4C",
+  CairoPDF(file="./figure/Figure4B",
            width=width_fig, height=height_fig)
   print(p2)
   dev.off()
@@ -749,7 +743,14 @@ Fig. 4. Pupil dilation/constriction rates in Experiments 1 and 2. (A) Raster plo
 countFigNum=1
 
 ## data loading ------------------------------------------------------------
-data=fromJSON(file="../[Python]PreProcessing/Exp1/data/data_cross_corr.json")
+# data=fromJSON(file="../[Python]PreProcessing/Exp1/data/data_cross_corr.json")
+if(mmFlg){
+  data=fromJSON(file="../[Python]PreProcessing/Exp1/data/data_CCF_trial_mm.json")
+}else if(auFlg){
+  data=fromJSON(file="../[Python]PreProcessing/Exp1/data/ddata_CCF_trial_au.json")
+}else{
+  data=fromJSON(file="../[Python]PreProcessing/Exp1/data/data_CCF_trial_norm.json")
+}
 
 # dataset --------------------------------------------------------------------
 dat <- list(matrix(unlist(data$raw),nrow=length(data$raw),byrow=T),

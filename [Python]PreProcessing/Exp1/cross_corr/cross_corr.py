@@ -30,8 +30,20 @@ def split_list(l, n):
 
 saveFileLocs = '../data/'
 
+cfg={'mmFlag':False,
+     'normFlag':True
+     }
+
 ################## Data load ##########################
-f = open(os.path.join(str(saveFileLocs + 'data_base_cross_corr.json')))
+if not cfg['mmFlag'] and not cfg['normFlag']:
+    f = open(os.path.join(str(saveFileLocs + 'data_CCF_au.json')))    
+    cfg['THRES_DIFF'] = 20
+elif cfg['mmFlag'] and not cfg['normFlag']:
+    f = open(os.path.join(str(saveFileLocs + 'data_CCF_mm.json')))
+else:
+    f = open(os.path.join(str(saveFileLocs + 'data_CCF_norm.json')))
+
+# f = open(os.path.join(str(saveFileLocs + 'data_base_cross_corr.json')))
 datHash = json.load(f)
 f.close()
 
@@ -208,20 +220,42 @@ for i in np.arange(len(data_cross_corr['raw'])):
 y = np.array(data_cross_corr['raw'])
 
 plt.figure(figsize=(12,12,))
+y1 = []
+y2 = []
 for iSub in np.unique(data_cross_corr['sub']):
     plt.subplot(5,5, iSub)
     
     ind = np.argwhere((np.array(data_cross_corr['sub']) == iSub) &
                       (np.array(data_cross_corr['randFlag']) == 1)).reshape(-1)
     plt.plot(data_cross_corr['lags_trial'],y[ind,:].T,label = 'raw',alpha=0.4)
+    y1.append(y[ind,:].reshape(-1))
     
     ind = np.argwhere((np.array(data_cross_corr['sub']) == iSub) &
                       (np.array(data_cross_corr['randFlag']) == 0)).reshape(-1)
     plt.plot(data_cross_corr['lags_trial'],y[ind,:].mean(axis=0).T,label = 'raw',alpha=0.4)
     plt.ylim(-0.6,0.6)
+    y2.append(y[ind,:].mean(axis=0).reshape(-1))
+   
+
+plt.figure()
+plt.plot(data_cross_corr['lags_trial'],np.array(y1).mean(axis=0),label = 'raw',alpha=0.4)
+plt.plot(data_cross_corr['lags_trial'],np.array(y2).mean(axis=0),label = 'shuffle',alpha=0.4)
+plt.legend()
+
 
 npts = 180*4
 data_cross_corr['lags_second'] = np.linspace(-npts, npts,181).tolist()
 
-with open(os.path.join(saveFileLocs + "data_cross_corr_trial.json"),"w") as f:
+# with open(os.path.join(saveFileLocs + "data_cross_corr_trial.json"),"w") as f:
+#         json.dump(data_cross_corr,f)
+if not cfg['mmFlag'] and not cfg['normFlag']:
+    with open(os.path.join(saveFileLocs + "data_CCF_trial_au.json"),"w") as f:
+        json.dump(data_cross_corr,f)
+
+elif cfg['mmFlag'] and not cfg['normFlag']:
+    with open(os.path.join(saveFileLocs + "data_CCF_trial_mm.json"),"w") as f:
+        json.dump(data_cross_corr,f)
+
+else:
+    with open(os.path.join(saveFileLocs + "data_CCF_trial_norm.json"),"w") as f:
         json.dump(data_cross_corr,f)

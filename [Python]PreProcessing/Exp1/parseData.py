@@ -1,20 +1,8 @@
-import sys
 import os
-import pprint
-
-sys.path.append('../../../../../GoogleDrive/PupilAnalysisToolbox/python/preprocessing/lib')
-pprint.pprint(sys.path)
-
 import numpy as np
 import json
 from asc2array import asc2array
 import glob
-
-def split_list(l, n):
-    windowL = np.round(np.linspace(0, len(l), n+1))
-    windowL = [int(windowL[i]) for i in np.arange(len(windowL))]
-    for idx in np.arange(len(windowL)-1):
-        yield l[windowL[idx]:windowL[idx+1]]
    
 folderName = glob.glob("./results/*")
 folderName.sort()
@@ -31,8 +19,10 @@ datHash={"PDR":[],
          "Saccade":[],
          "rejectFlag":[],
          "taskTimeLen":[],
-         "jitter":[]
-         # "numOfSaccade":[],
+         "jitter":[],
+         "start_end":[], 
+         "data_x":[],
+         "data_x_queue":[],
          # "ampOfSaccade":[]
           }
 
@@ -40,8 +30,8 @@ cfg={'THRES_DIFF':10,
      'WID_ANALYSIS':4,
      'useEye':2,
      'WID_FILTER':[],
-     'mmFlag':True,
-     'normFlag':False,
+     'mmFlag':False,
+     'normFlag':True,
      's_trg':[],
      'visualization':False
      }
@@ -69,6 +59,8 @@ for iSub,subName in enumerate(folderName):
     start_trial = [[int(int(e[0])- initialTimeVal),e[1]] for e in events['MSG'] if e[1] == 'Start_Pesentation']
     end_trial = [[int(int(e[0])- initialTimeVal),e[1]] for e in events['MSG'] if e[1] == 'End_Pesentation']
 
+    datHash['start_end'].append([[s[0],e[0]] for s,e in zip(start_trial,end_trial)])
+  
     events_queue = [[int(int(e[0])- initialTimeVal),e[1]] for e in events['MSG'] if e[1] == 'task_queue']
     events_response = [[int(int(e[0])- initialTimeVal),e[1]] for e in events['MSG'] if e[1] == '0' or e[1] == '1' or e[1] == '2' or e[1] == '3' or e[1] == '4' or e[1] == '5']
  
@@ -166,6 +158,12 @@ for iSub,subName in enumerate(folderName):
     datHash['numOfSwitch'] = np.r_[datHash['numOfSwitch'], tmp_numOfSwitch]
     
     datHash['sub'] = np.r_[datHash['sub'],np.ones(len(events_queue))*(iSub+1)]
+    
+    x = [e[0] for e in events_response]
+    datHash["data_x"] = np.r_[datHash["data_x"],x]
+    
+    x = [e[0] for e in events_queue]
+    datHash["data_x_queue"] = np.r_[datHash["data_x_queue"],x]
     # datHash['numOfBlink'] = np.r_[datHash['numOfBlink'], np.array(event_data['numOfEBLINK'])]
     # datHash['numOfSaccade'] = np.r_[datHash['numOfSaccade'], np.array(event_data['numOfESACC'])]
     # datHash['ampOfSaccade'] = np.r_[datHash['ampOfSaccade'], np.array(event_data['ampOfESACC'])]
@@ -186,10 +184,10 @@ if not cfg['mmFlag'] and not cfg['normFlag']:
     with open(os.path.join("./data/data_original_au.json"),"w") as f:
         json.dump(datHash,f)
 
-if cfg['mmFlag']:
+elif cfg['mmFlag'] and not cfg['normFlag']:
     with open(os.path.join("./data/data_original_mm.json"),"w") as f:
         json.dump(datHash,f)
 
-# else:
-    # with open(os.path.join("./data/data_original.json"),"w") as f:
-    #     json.dump(datHash,f)
+else:
+    with open(os.path.join("./data/data_original_norm.json"),"w") as f:
+        json.dump(datHash,f)

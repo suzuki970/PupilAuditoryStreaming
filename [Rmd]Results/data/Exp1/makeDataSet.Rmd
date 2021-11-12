@@ -25,7 +25,7 @@ eTime = 5
 
 analysisWin = 0
 countFigNum=1
-mmFlg = TRUE
+mmFlg = FALSE
 auFlg = FALSE
 
 saveLoc = "../../../[Python]PreProcessing/Exp1/data/"
@@ -40,7 +40,8 @@ if(mmFlg){
 }else if(auFlg){
   data=fromJSON(file=paste(saveLoc,"data_au.json", sep = ""))
 }else{
-  data=fromJSON(file=paste(saveLoc,"data20210610.json", sep = ""))
+  # data=fromJSON(file=paste(saveLoc,"data20210610.json", sep = ""))
+  data=fromJSON(file=paste(saveLoc,"data_norm.json", sep = ""))
 }
 
 dat <- list((matrix(unlist(data$PDR_baseline),nrow=length(data$PDR_baseline),byrow=T)),
@@ -211,8 +212,8 @@ if(mmFlg){
        file = "figure2_au.rda")
 }else{
   save(data_RT,data_res_phasic,data_res_tonic,
-       data_numOfTrial,data_tonic,data_corr,
-       file = "figure2.rda")
+       data_numOfTrial,
+       file = "figure2_norm.rda")
 }
 
 ```

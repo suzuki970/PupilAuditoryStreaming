@@ -6,16 +6,19 @@ Created on Mon Mar  1 10:06:35 2021
 @author: yutasuzuki
 """
 
+import sys
+import os
+
+sys.path.append('../../../../../../GoogleDrive/PupilAnalysisToolbox/python/preprocessing/lib')
+
 import numpy as np
 import json
 from asc2array import asc2array
 import glob
-import os
 from pre_processing import pre_processing,moving_avg,re_sampling
 import matplotlib.pyplot as plt
-from itertools import chain
-from pre_processing import moving_avg
 from matplotlib import cm
+from itertools import chain
 from scipy.stats import pearsonr,spearmanr,kendalltau
 import scipy.stats as sp
 import random
@@ -46,9 +49,10 @@ cfg={'THRES_DIFF':10,
      'WID_ANALYSIS':4,
      'useEye':2,
      'WID_FILTER':[],
-     'mmFlag':False,
-     'normFlag':True,
-     's_trg':[]
+     'mmFlag':True,
+     'normFlag':False,
+     's_trg':[],
+     'visualization':False
      }
 
 
@@ -144,11 +148,22 @@ for iSub,subName in enumerate(folderName):
     datHash["Response"] = np.r_[datHash["Response"],res]
     datHash['sub'] = np.r_[datHash['sub'],np.ones(len(res))*(iSub+1)]
 
+
 datHash["PDR"] = [p.tolist() for p in datHash["PDR"]]
 mmName = list(datHash.keys())
 for mm in mmName:
     if not isinstance(datHash[mm],list):
         datHash[mm] = datHash[mm].tolist()
 
-with open(os.path.join(saveFileLocs + "data_base_cross_corr.json"),"w") as f:
-    json.dump(datHash,f)
+
+if not cfg['mmFlag'] and not cfg['normFlag']:
+    with open(os.path.join(saveFileLocs + "data_CCF_au.json"),"w") as f:
+        json.dump(datHash,f)
+
+elif cfg['mmFlag'] and not cfg['normFlag']:
+    with open(os.path.join(saveFileLocs + "data_CCF_mm.json"),"w") as f:
+        json.dump(datHash,f)
+
+else:
+    with open(os.path.join(saveFileLocs + "data_CCF_norm.json"),"w") as f:
+        json.dump(datHash,f)

@@ -5,12 +5,7 @@ Created on Fri Nov 20 12:32:21 2020
 
 @author: yutasuzuki
 """
-import sys
 import os
-import pprint
-
-sys.path.append('../../../../../GoogleDrive/PupilAnalysisToolbox/python/preprocessing/lib')
-
 import numpy as np
 import matplotlib.pyplot as plt
 from pre_processing import pre_processing,re_sampling,getNearestValue
@@ -29,7 +24,7 @@ def split_list(l, n):
     for idx in np.arange(len(windowL)-1):
         yield l[windowL[idx]:windowL[idx+1]]
   
-## ########## initial settings ###################
+#%% ########## initial settings ###################
 
 cfg={
 'SAMPLING_RATE':1000,   
@@ -41,8 +36,8 @@ cfg={
 'METHOD':1, #subtraction
 'FLAG_LOWPASS':False,
 'THRES_DIFF':0.04,
-'mmFlag':True,
-'normFlag':False
+'mmFlag':False,
+'normFlag':True
 # 'THRES_DIFF':0.3 
 }
 
@@ -52,10 +47,10 @@ saveFileLocs = 'data/'
 if not cfg['mmFlag'] and not cfg['normFlag']:
     f = open(os.path.join(str(saveFileLocs + 'data_original_au.json')))    
     cfg['THRES_DIFF'] = 20
-elif cfg['mmFlag']:
+elif cfg['mmFlag'] and not cfg['normFlag']:
     f = open(os.path.join(str(saveFileLocs + 'data_original_mm.json')))
 else:
-    f = open(os.path.join(str(saveFileLocs + 'data_original.json')))
+    f = open(os.path.join(str(saveFileLocs + 'data_original_norm.json')))
 
 dat = json.load(f)
 f.close()
@@ -72,7 +67,7 @@ tmp_base = tmp_base.reshape(len(tmp_base),1)
 
 cfg['WID_BASELINE'] = np.concatenate([-tmp_base-1,-tmp_base], 1)
 
-## ########## answer array move behind ###################
+#%%  ########## answer array move behind ###################
 switch = np.array(dat['responses'].copy())
 rt = np.array(dat['RT'])
 
@@ -92,7 +87,7 @@ dat['responses'] = switch.copy().tolist()
 dat['RT'] = rt.copy().tolist()
 tmp_rejectNum = np.argwhere(switch == -1).reshape(-1)
 
-################## artifact rejection ##########################
+#%% ################ artifact rejection ##########################
 y,rejectNum = pre_processing(np.array(dat['PDR_baseline'].copy()),cfg)
 mmName = list(dat.keys())
 
@@ -110,7 +105,7 @@ y = np.delete(y,rejectNum,axis=0)
 # for mm in mmName:
 #     dat[mm] = [d for i,d in enumerate(dat[mm]) if not i in rejectNumPCA]
 
-################## rejection of outlier ##########################
+#%% ################# rejection of outlier ##########################
 max_val = [max(abs(y[i,])) for i in np.arange(y.shape[0])]
 fx = np.diff(y)
 rejectOutlier = []
@@ -125,7 +120,7 @@ y = np.delete(y,rejectOutlier,axis=0)
 for mm in mmName:
     dat[mm] = [d for i,d in enumerate(dat[mm]) if not i in rejectOutlier]
 
-################## blink and saccade ##########################
+#%% ################# blink and saccade ##########################
 ind_baseline = [rt*cfg['SAMPLING_RATE'] for rt in dat['RT']]
 d_bk=[]
 d_sc=[]
@@ -137,7 +132,7 @@ dat['numOfBlink'] = [len(e) for e in d_bk]
 dat['ampOfSaccade'] = [np.mean(e) if len(e)>0 else 0 for e in d_sc]   
 dat['numOfSaccade'] = [len(e) for e in d_sc]   
 
-################## microsaccade ##########################
+#%% ################# microsaccade ##########################
 # gazeX = dat['gazeX'].copy()
 # mSaccade = dat['mSaccade'].copy()
 
@@ -241,7 +236,7 @@ dat['numOfSaccade'] = [len(e) for e in d_sc]
 del dat["gazeX"], dat["gazeY"],dat['Blink'],dat['Saccade']
 mmName = list(dat.keys())
 
-################## NAN reject ##########################
+#%% ################# NAN reject ##########################
 rejectNAN=[]
 for mm in mmName:
     ind = np.argwhere(np.isnan(np.array(dat[mm])) == True)
@@ -256,9 +251,8 @@ if len(rejectNAN) > 0:
     for mm in mmName:
         dat[mm] = [d for i,d in enumerate(dat[mm]) if not i in rejectNAN]
 
-################## reject subject (N < 40%) ##########################
+#%% ################# reject subject (N < 40%) ##########################
 reject=[]
-NUM_TRIAL = 80
 numOftrials = []
 numOftrials_res = []
 for iSub in np.arange(1,int(max(dat['sub']))+1):
@@ -271,13 +265,12 @@ for iSub in np.arange(1,int(max(dat['sub']))+1):
     numOftrials.append(len(ind0)+len(ind1))
     numOftrials_res.append([len(ind0),len(ind1)])
     
-    # if min(numOftrials_res[iSub-1]) < (len(ind0)+len(ind1)) * 0.2:
-    #         reject.append(iSub)
-    if (len(ind0)+len(ind1)) < NUM_TRIAL * 0.4:
-            reject.append(iSub)
-
+    if (len(ind0)+len(ind1)) < original_numOfTrial[iSub-1] * 0.4:
+        print('Subject ' + str(iSub) + ', # trial = ' + str((len(ind0)+len(ind1))) + 
+              ', # original trial = ' + str(original_numOfTrial[iSub-1]))
+        reject.append(iSub)
+        
 reject = np.unique(reject)
-# print('# of trials = ' + str(numOftrials))
 
 rejectSub = [i for i,d in enumerate(dat['sub']) if d in reject]
 print('rejected subject = ' + str(reject))
@@ -292,14 +285,14 @@ ave = 1-(np.array(numOftrials)/np.array(original_numOfTrial))
 
 print('rejected num ave = ' + str(round(np.mean(ave),3)) + ', sd = ' + str(round(np.std(ave),3)))
 
-################## Baseline ##########################
+#%% ################# Baseline ##########################
 diam = np.array(dat['PDR'].copy())
 diam = np.mean(diam[:,-1000:],axis=1).reshape(len(diam),1)
 
 dat['PDR_size'] = [np.mean(p) for p in diam.tolist()]
 
 
-################# trial number ##########################
+#%% ################ trial number ##########################
 dat['numOfTrial'] = np.zeros(y.shape[0])
 for iSub in np.arange(1,max(dat['sub'])+1):
       for i in np.arange(2):
@@ -309,7 +302,7 @@ for iSub in np.arange(1,max(dat['sub'])+1):
 
 dat['numOfTrial'] = dat['numOfTrial'].tolist()
 
-################## PCA ##########################
+#%% ################# PCA ##########################
 # ave = np.mean(y,axis=0)
 # pca = PCA(n_components=4).fit(y)
 # loadings = pca.components_  # Eigenvector
@@ -319,7 +312,7 @@ dat['numOfTrial'] = dat['numOfTrial'].tolist()
 #   plt.plot(x,loadings[i,],label=round(var_ratio[i],3))
 # plt.legend()
 
-################## velocity ##########################
+#%% ################# velocity ##########################
 
 dat['PDRder'] = re_sampling(dat['PDR'],30).tolist()
 dat['PDRder'] = (np.diff(dat['PDRder'])*(30/4)).tolist()
@@ -334,7 +327,7 @@ for mm in mmName:
     if not isinstance(dat[mm],list):
         dat[mm] = dat[mm].tolist()
         
-################ data plot ##########################
+#%% ############### data plot ##########################
 
 import pandas as pd
 df = pd.DataFrame()
@@ -373,15 +366,15 @@ for i in range(2):
 plt.title('Task duration')
 
 
-################## Data save ##########################
+#%% ################# Data save ##########################
 if not cfg['mmFlag'] and not cfg['normFlag']:
     with open(os.path.join(saveFileLocs + "data_au.json"),"w") as f:
             json.dump(dat,f)
 
-elif cfg['mmFlag']:
+elif cfg['mmFlag'] and not cfg['normFlag']:
     with open(os.path.join(saveFileLocs + "data_mm.json"),"w") as f:
             json.dump(dat,f)
-
-# with open(os.path.join(saveFileLocs+"data20210610.json"),"w") as f:
-#         json.dump(dat,f)
+else:
+    with open(os.path.join(saveFileLocs + "data_norm.json"),"w") as f:
+            json.dump(dat,f)
         
