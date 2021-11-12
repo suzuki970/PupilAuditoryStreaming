@@ -40,7 +40,7 @@ countFigNum = 1
 mmFlg = FALSE
 auFlg = FALSE
 
-figOutput = TRUE
+figOutput = FALSE
 nsFlag = FALSE
 
 #### Figure 1A ####

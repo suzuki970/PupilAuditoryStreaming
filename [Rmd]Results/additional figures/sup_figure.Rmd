@@ -266,8 +266,15 @@ __Supplemental Figure 1B__ shows the grand-averaged time-course of baseline pupi
 
 g2 = c('unswitch','switch')
 countFigNum = 1
-mmFlg = TRUE
+mmFlg = FALSE
 auFlg = FALSE
+
+config = list(
+  alpha = 0.4,
+  stride = 0.1,
+  label_x = "",
+  title = ""
+)
 
 #### data loading ------------------------------------------------------------
 if(mmFlg){
@@ -442,9 +449,9 @@ p = ggplot(data_anovaPD,aes(x=numOfSwitch, y=data_y, group=interaction(exp,data_
   theme(
     axis.text.x = element_text(angle = 15)
   )
- 
+
 anovakun(data_anovaPD,"sABC",long=T, peta=T,gg=T)
- 
+
 PD_table = list(list(
   anovaTab = forDrawingSigANOVA
 ))
@@ -502,6 +509,24 @@ data_anovaPD$baseline = baseline_anovaPD$baseline
 
 data_anovaPD$numEvents = data_anovaPD$data_y
 
+data_corr = NULL
+for(iSub in unique(data_anovaPD$sub)){
+  tmp = data_anovaPD[data_anovaPD$sub == iSub,]
+  x = as.numeric(tmp$numEvents)
+  y = tmp$baseline
+  f <- y ~  a*x + b
+  model <- nls(f, start = c(a = 0, b = 0))
+  data_corr = rbind(data_corr,
+                    data.frame(
+                      sub = subName[iSub],
+                      r = cor.test(x,y)[['estimate']][['cor']],
+                      pVal = round(summary(model)[["coefficients"]]['a',]['Pr(>|t|)'],4),
+                      interc = summary(model)[["coefficients"]]['a',]['Estimate'],
+                      slope = summary(model)[["coefficients"]]['b',]['Estimate']
+                    )
+  )
+}
+
 data_anovaPD = aggregate( baseline ~ sub*numEvents*exp, data = data_anovaPD, FUN = "mean")
 data_anovaPD = aggregate( baseline ~ sub*numEvents, data = data_anovaPD, FUN = "mean")
 
@@ -510,17 +535,26 @@ data_anovaPD$data_y = data_anovaPD$baseline
 
 data_anovaPD$baseline = NULL
 
+data_anovaPD$sub = subName[data_anovaPD$sub]
 p = ggplot(data_anovaPD,aes(x=numEvents,y=data_y))+
-  geom_point()
+  geom_point(aes(color=sub))+
+  facet_wrap(.~sub)+
+  # geom_line(aes(color=sub,group = sub))+
+  xlab("The rank order of PD event") + ylab("Baseline pupil size") +
+  theme(
+    legend.position = 'none'
+  )
 
-p = dispBoxGraph(data_anovaPD,config,c("numEvents"))
 
-config$ylim = round(seq(3,7.5,0.5),2)
-config$ylim_stride = 0.05
-config$xlim = round(seq(1,6,1),2)
-config$xlim_stride = 0.5
 
-p = setEmptyStyle(p,config)
+# p = dispBoxGraph(data_anovaPD,config,c("numEvents"))
+
+# config$ylim = round(seq(3,7.5,0.5),2)
+# config$ylim_stride = 0.05
+# config$xlim = round(seq(1,6,1),2)
+# config$xlim_stride = 0.5
+
+# p = setEmptyStyle(p,config)
 
 eval(parse(text=paste("p", countFigNum ,"=p", sep="")))
 countFigNum = countFigNum+1
