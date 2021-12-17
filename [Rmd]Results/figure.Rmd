@@ -23,9 +23,6 @@ Tel: +81-046-240-3525,
 E-mail: yuuta.suzuki.fc@hco.ntt.co.jp
 
 
-```{r child="readFunc.Rmd"}
-```
-
 ## Figure 1 Procedure
 ```{r, echo=FALSE, out.width = '100%'}
 knitr::include_graphics("./figure/fig1.png")

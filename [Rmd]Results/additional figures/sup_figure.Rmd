@@ -509,6 +509,18 @@ data_anovaPD$baseline = baseline_anovaPD$baseline
 
 data_anovaPD$numEvents = data_anovaPD$data_y
 
+tmp =  aggregate( baseline ~ sub*exp, data =data_anovaPD, FUN = "mean")
+reject = NULL
+th = dim(tmp[tmp$sub == 1,])[1]
+for(iSub in unique(tmp$sub)){
+  if(dim(tmp[tmp$sub == iSub,])[1] != th){
+    reject = rbind(reject,iSub)
+  }
+}
+for(iSub in reject){
+  data_anovaPD = data_anovaPD[data_anovaPD$sub != iSub,]
+}
+
 data_corr = NULL
 for(iSub in unique(data_anovaPD$sub)){
   tmp = data_anovaPD[data_anovaPD$sub == iSub,]
@@ -521,62 +533,77 @@ for(iSub in unique(data_anovaPD$sub)){
                       sub = subName[iSub],
                       r = cor.test(x,y)[['estimate']][['cor']],
                       pVal = round(summary(model)[["coefficients"]]['a',]['Pr(>|t|)'],4),
-                      interc = summary(model)[["coefficients"]]['a',]['Estimate'],
-                      slope = summary(model)[["coefficients"]]['b',]['Estimate']
+                      interc = summary(model)[["coefficients"]]['b',]['Estimate'],
+                      slope = summary(model)[["coefficients"]]['a',]['Estimate']
                     )
   )
 }
 
-data_anovaPD = aggregate( baseline ~ sub*numEvents*exp, data = data_anovaPD, FUN = "mean")
-data_anovaPD = aggregate( baseline ~ sub*numEvents, data = data_anovaPD, FUN = "mean")
-
-data_anovaPD$numEvents =factor(data_anovaPD$numEvents,levels = unique(data_anovaPD$numEvents))
-data_anovaPD$data_y = data_anovaPD$baseline
-
-data_anovaPD$baseline = NULL
-
+data_anovaPD$numEvents =factor(data_anovaPD$numEvents,levels = sort(unique(data_anovaPD$numEvents)))
 data_anovaPD$sub = subName[data_anovaPD$sub]
-p = ggplot(data_anovaPD,aes(x=numEvents,y=data_y))+
-  geom_point(aes(color=sub))+
-  facet_wrap(.~sub)+
+
+
+data_anovaPD_ave = aggregate( baseline ~ sub*numEvents, data =data_anovaPD, FUN = "sum")
+x = as.numeric(data_anovaPD_ave$numEvents)
+y = data_anovaPD_ave$baseline
+cor.test(x,y)
+p = ggplot()+
+  geom_point(data=data_anovaPD_ave,aes(x=numEvents,y=baseline,color=numEvents))
+
+
+p = ggplot()+
+  geom_point(data=data_anovaPD,aes(x=numEvents,y=baseline,color=numEvents))+
+  scale_color_manual(values=brewer.pal(10, "Greys")[4:9])+
+  facet_wrap(.~sub,ncol=5)+
+  geom_abline(data=data_corr,aes(intercept = interc, slope = slope))+
+  # geom_abline(data=data_corr,aes(intercept = Cinterc2, slope = slope2),color="red")+
+  geom_text(data = data_corr,x = 5.5,y=-3.0,
+            aes(label = paste("R = ",sprintf("%s", round(r,3)),sep="")),color='black',size = 5) +
+  geom_text(data = data_corr,x = 5.5,y=-3.7,
+            aes(label = paste("p = ",sprintf("%s", round(pVal,3)),sep="")),color='black',size = 5) +
   # geom_line(aes(color=sub,group = sub))+
-  xlab("The rank order of PD event") + ylab("Baseline pupil size") +
+  xlab("The rank order of PD event") + ylab("Baseline pupil size [z-scored]") +
   theme(
     legend.position = 'none'
   )
 
-
-
 # p = dispBoxGraph(data_anovaPD,config,c("numEvents"))
 
-# config$ylim = round(seq(3,7.5,0.5),2)
-# config$ylim_stride = 0.05
-# config$xlim = round(seq(1,6,1),2)
-# config$xlim_stride = 0.5
+if(mmFlg){
+  config$ylim = round(seq(3,7.5,0.5),2)
+  config$ylim_stride = 0.05
+  config$xlim = round(seq(1,6,1),2)
+  config$xlim_stride = 0.5
+}else{
+  config$ylim = round(seq(-4,4,2),2)
+  config$ylim_stride = 0.5
+  config$xlim = round(seq(1,6,1),2)
+  config$xlim_stride = 0.5
+}
 
-# p = setEmptyStyle(p,config)
+p = setEmptyStyle(p,config)
 
 eval(parse(text=paste("p", countFigNum ,"=p", sep="")))
 countFigNum = countFigNum+1
 
-x = as.numeric(data_anovaPD$numEvents)
-y = data_anovaPD$data_y
-f <- y ~  a*x + b
-model <- nls(f, start = c(a = 0, b = 0))
+# x = as.numeric(data_anovaPD$numEvents)
+# y = data_anovaPD$baseline
+# f <- y ~  a*x + b
+# model <- nls(f, start = c(a = 0, b = 0))
+# 
+# data_anovaPD$numEvents = as.numeric(data_anovaPD$numEvents)
+# bf = regressionBF(data_y ~ numEvents, data = data_anovaPD)
 
-data_anovaPD$numEvents = as.numeric(data_anovaPD$numEvents)
-bf = regressionBF(data_y ~ numEvents, data = data_anovaPD)
+# BPPD_table = list(list(
+#   model = model,
+#   r =cor.test(x,y),
+#   tVal = round(summary(model)[["coefficients"]]['a',]['t value'],4),
+#   pVal = round(summary(model)[["coefficients"]]['a',]['Pr(>|t|)'],4),
+#   bf = round(exp(bf@bayesFactor[["bf"]]),3)
+# ))
+# names(BPPD_table) <- c('BPPD_table')
 
-BPPD_table = list(list(
-  model = model,
-  r =cor.test(x,y),
-  tVal = round(summary(model)[["coefficients"]]['a',]['t value'],4),
-  pVal = round(summary(model)[["coefficients"]]['a',]['Pr(>|t|)'],4),
-  bf = round(exp(bf@bayesFactor[["bf"]]),3)
-))
-names(BPPD_table) <- c('BPPD_table')
-
-anovaTabAll_sup = c(anovaTabAll_sup,BPPD_table)
+# anovaTabAll_sup = c(anovaTabAll_sup,BPPD_table)
 ```
 
 ```{r, message=FALSE, echo=FALSE, warning=FALSE,fig.width = 10, fig.height = 10}
@@ -591,11 +618,11 @@ if(figOutput){
   dev.off()
 }
 ```
-```{r, message=FALSE, echo=FALSE, warning=FALSE,fig.width = 5, fig.height = 5}
+```{r, message=FALSE, echo=FALSE, warning=FALSE,fig.width = 8, fig.height = 8}
 plot(p2)
 if(figOutput){
-  width_fig=8
-  height_fig=5
+  width_fig=15
+  height_fig=12
   CairoFonts(regular = "Times","Times")
   CairoPDF(file="./figure/SupFigure3",
            width=width_fig, height=height_fig)
@@ -610,8 +637,7 @@ Three-way anova (alternation x time window x experiment) only revealed a signifi
 $p$ = `r round(anovaTabAll_sup$PD_table$anovaTab[4,]['p.col'],3)`, $\eta^2_p$ = `r round(anovaTabAll_sup$PD_table$anovaTab[4,]['p.eta^2'],3)`).
 This could be explained by motor responses such as button-press responses __(Einhäuser et al., 2010; Grenzebach et al., 2021; Hupé et al., 2009)__. However, other main factors and interactions were not significant (p > 0.05).
 
-We further calculated the correlation between the baseline pupil size and the number of transient PD events as shown in __Supplemental Fig.3__. The number of PD events during the early 4-s part of the observation period before the window of baseline pupil size. The data were fitted by a simple regression model ($y$ = `r round(summary(anovaTabAll_sup$BPPD_table$model)[['coefficients']]['a',]['Estimate'],3)`$x$ + `r round(summary(anovaTabAll_sup$BPPD_table$model)[['coefficients']]['b',]['Estimate'],3)`, 
-$R$ = `r round(anovaTabAll_sup$BPPD_table$r[['estimate']][['cor']],3)`, $t$ = `r anovaTabAll_sup$BPPD_table$tVal`, $p$ = `r anovaTabAll_sup$BPPD_table$pVal`), indicating that there was no evidence that increasing number of PD events can explain the baseline pupil size in the current study.
+We further calculated the correlation between the baseline pupil size and the number of transient PD events as shown in __Supplemental Fig.3__. The number of PD events during the early 4-s part of the observation period before the window of baseline pupil size. The data were fitted by a simple regression model, indicating that there was no evidence that increasing number of PD events can explain the baseline pupil size in the current study.
 
 <!-- ## CFF -->
 <!-- ```{r, message=FALSE, echo=FALSE, warning=FALSE,include=FALSE} -->

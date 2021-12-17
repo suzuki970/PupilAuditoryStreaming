@@ -1,11 +1,3 @@
----
-title: "readFunc"
-author: "Yuta Suzuki"
-date: "4/27/2021"
-# output: html_document
----
-
-```{r, message=FALSE, warning=FALSE, echo=FALSE, include=FALSE}
 #### Package installation #### 
 library(rjson)
 library(ggplot2)
@@ -17,7 +9,9 @@ library(BayesFactor)
 library(rjson)
 library(reshape)
 library(lme4)
+library(lmerTest)
 library(permutes)
+library(RColorBrewer)
 
 if(exists(".anovakun.env")){
   sys.source("./data/anovakun_485.R", envir = .anovakun.env)
@@ -384,4 +378,3 @@ disp <- function(ribbondata,config,shadeFl,factors,numOfSub=0){
   return(p)
 }
 
-```
