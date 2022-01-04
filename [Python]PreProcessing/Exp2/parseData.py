@@ -13,7 +13,7 @@ datHash={"PDR":[],
          "PDR_baseline":[],
          "gazeX":[],
          "gazeY":[],
-         'mSaccade':[],
+         # 'mSaccade':[],
          "RT":[],
          "responses":[],
          "sub":[],
@@ -34,13 +34,14 @@ cfg={'THRES_DIFF':10,
      'WID_FILTER':[],
      'mmFlag':False,
      'normFlag':True,
+     # 'mmFlag':True,
+     # 'normFlag':False,
      's_trg':[],
-     'visualization':False
+     'visualization':False,
+     'MS':False
      }
 
-
 saveFileLocs = './data/'
-
 
 for iSub,subName in enumerate(folderName):
     fileName = glob.glob(os.path.join(subName+'/*.asc'))
@@ -58,7 +59,7 @@ for iSub,subName in enumerate(folderName):
     pupilData = eyeData['pupilData']
     gazeX = eyeData['gazeX']
     gazeY = eyeData['gazeY']
-    mSaccade = eyeData['mSaccade']
+    # mSaccade = eyeData['mSaccade']
     datHash['rejectFlag'].append(eyeData['rejectFlag'])
     
     coef = fs / 1000
@@ -150,18 +151,18 @@ for iSub,subName in enumerate(folderName):
         tmp = pupilData[(r[0]-int(sTime*fs)):(r[0]+int(eTime*fs))]
         tmp_gazeX = gazeX[(r[0]-int(sTime*fs)):(r[0]+int(eTime*fs))]
         tmp_gazeY = gazeY[(r[0]-int(sTime*fs)):(r[0]+int(eTime*fs))]
-        tmp_mSaccade = mSaccade[(r[0]-int(sTime*fs)):(r[0]+int(eTime*fs))]
+        # tmp_mSaccade = mSaccade[(r[0]-int(sTime*fs)):(r[0]+int(eTime*fs))]
         
         if len(tmp) == int((sTime+eTime)*fs):
             datHash['PDR_baseline'].append(tmp)
             datHash['gazeX'].append(tmp_gazeX)
             datHash['gazeY'].append(tmp_gazeY)
-            datHash['mSaccade'].append(tmp_mSaccade)
+            # datHash['mSaccade'].append(tmp_mSaccade)
         else:
             datHash['PDR_baseline'].append(np.zeros(int((sTime+eTime)*fs)))
             datHash['gazeX'].append(np.zeros(int((sTime+eTime)*fs)))
             datHash['gazeY'].append(np.zeros(int((sTime+eTime)*fs)))
-            datHash['mSaccade'].append(np.zeros(int((sTime+eTime)*fs)))
+            # datHash['mSaccade'].append(np.zeros(int((sTime+eTime)*fs)))
             
         # plt.plot(np.diff(pupilData[r[0]-timeLen:r[0]]))
         
@@ -198,7 +199,7 @@ for iSub,subName in enumerate(folderName):
 datHash['PDR'] = re_sampling(datHash['PDR'],4000)
 datHash['gazeX'] = re_sampling(datHash['gazeX'],9000)
 datHash['gazeY'] = re_sampling(datHash['gazeY'],9000)
-datHash['mSaccade'] = re_sampling(datHash['mSaccade'],9000)
+# datHash['mSaccade'] = re_sampling(datHash['mSaccade'],9000)
 
 datHash['PDR_baseline'] = re_sampling(np.array(datHash['PDR_baseline']),(sTime+eTime)*1000)
 

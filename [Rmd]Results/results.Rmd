@@ -1,7 +1,7 @@
 ---
 title: "Result notes"
 author: "Yuta Suzuki"
-date: "3/2/2021"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
   output: word_document
   # html_document
@@ -25,9 +25,6 @@ knitr::opts_chunk$set(echo = TRUE)
 # tinytex::install_tinytex()
 ```
 
-```{r child="readFunc.Rmd"}
-```
-
 ```{r, message=FALSE, warning=FALSE, echo=FALSE, include=FALSE}
 
 
@@ -45,7 +42,7 @@ if(mmFlg){
 numOfsub = length(unique(data_res_tonic$sub))
 anovaTabAll_e1 = list()
 
-#### Behavioral(# of trials) ####
+#### Behavioral(# of trials) ----------------------------------------------------------------
 ave_numOfTrial = aggregate( numOfTrial ~ numOfSwitch, data = data_numOfTrial, FUN = "mean")
 ave_numOfTrial$numOfTrial = round(ave_numOfTrial$numOfTrial,2)
 sd_numOfTrial = aggregate( numOfTrial ~ numOfSwitch, data = data_numOfTrial, FUN = "sd")
@@ -57,15 +54,31 @@ data_numOfTrial$sub = factor(data_numOfTrial$sub,levels = unique(data_numOfTrial
 
 numOfTrial_BF = anovaBF(numOfTrial ~ numOfSwitch + sub, data=data_numOfTrial, whichRandom = "sub",progress=FALSE)
 
+x = data_numOfTrial[data_numOfTrial$numOfSwitch == "2+",]$numOfTrial
+y = data_numOfTrial[data_numOfTrial$numOfSwitch == "0",]$numOfTrial
+n = length(x)
+ttest_pair0_2 = t.test(x, y, paired=TRUE)
+bayesF_pair0_2 = ttestBF(x = x, y = y, paired=TRUE)
+
+x = data_numOfTrial[data_numOfTrial$numOfSwitch == "1",]$numOfTrial
+y = data_numOfTrial[data_numOfTrial$numOfSwitch == "0",]$numOfTrial
+
+ttest_pair0_1 = t.test(x, y, paired=TRUE)
+bayesF_pair0_1 = ttestBF(x = x, y = y, paired=TRUE)
+
 numOfTrial = list(list(
   anovaTab = forDrawingSigANOVA,
   post = forDrawingPost[["A"]][["bontab"]],
-  bf = round(exp(numOfTrial_BF@bayesFactor[["bf"]]),3)
+  bf = round(exp(numOfTrial_BF@bayesFactor[["bf"]]),3),
+  cohen_pair0_2 = abs(round(ttest_pair0_2[["statistic"]][["t"]] / sqrt(n),3)),
+  bayesF_pair0_2 = round(exp(bayesF_pair0_2@bayesFactor[["bf"]]),3),
+  cohen_pair0_1 = abs(round(ttest_pair0_1[["statistic"]][["t"]] / sqrt(n),3)),
+  bayesF_pair0_1 = round(exp(bayesF_pair0_1@bayesFactor[["bf"]]),3)
 ))
 names(numOfTrial) <- c('numOfTrial')
 anovaTabAll_e1 = c(anovaTabAll_e1,numOfTrial)
 
-#### Behavioral(number of switch and jitter) ####
+#### Behavioral(number of switch and jitter) ------------------------------------------------------
 saveLoc = "../[Python]PreProcessing/Exp1/data/"
 dat_jitter=fromJSON(file=paste(saveLoc,"numOfSwitch_jitter.json", sep = ""))
 
@@ -91,7 +104,7 @@ names(jitter_table) <- c('jitter_table')
 
 anovaTabAll_e1 = c(anovaTabAll_e1,jitter_table)
 
-#### Behavioral(RT) #### 
+#### Behavioral(RT) --------------------------------------------------------------------
 anovakun(data_RT,"sA",long=T, peta=T,gg=T)
 rt_sd = aggregate( RT ~ numOfSwitch, data = data_RT, FUN = "sd")
 rt_ave = aggregate( RT ~ numOfSwitch, data = data_RT, FUN = "mean")
@@ -112,7 +125,7 @@ names(RT_table) <- c('RT_table')
 
 anovaTabAll_e1 = c(anovaTabAll_e1,RT_table)
 
-#### Figure 2A(average baseline pupil size) ####
+#### Figure 2A(average baseline pupil size) ------------------------------------------------------
 data_res_tonic$data_y = data_res_tonic$Size
 data_res_tonic$Size = NULL
 anovakun(data_res_tonic,"sA",long=T, peta=T,gg=T)
@@ -125,17 +138,19 @@ bf = anovaBF(data_y ~ numOfSwitch + sub, data=data_res_tonic, whichRandom = "sub
 x = data_res_tonic[data_res_tonic$numOfSwitch == "2+",]$data_y
 y = data_res_tonic[data_res_tonic$numOfSwitch == "0",]$data_y
 n = length(x)
-sc = sqrt((n*(var(x))+n*(var(y)))/(n*2))
-cohen_d0 = round(abs(mean(x)-mean(y))/sc,3)
+# sc = sqrt((n*(var(x))+n*(var(y)))/(n*2))
+# cohen_d0 = round(abs(mean(x)-mean(y))/sc,3)
+ttest_pair0_2 = t.test(x, y, paired=TRUE)
 
 bayesF = ttestBF(x = x, y = y, paired=TRUE)
 bayesF_d0 = round(exp(bayesF@bayesFactor[["bf"]]),3)
 
 x = data_res_tonic[data_res_tonic$numOfSwitch == "2+",]$data_y
 y = data_res_tonic[data_res_tonic$numOfSwitch == "1",]$data_y
-n = length(x)
-sc = sqrt((n*(var(x))+n*(var(y)))/(n*2))
-cohen_d1 = round(abs(mean(x)-mean(y))/sc,3)
+ttest_pair1_2 = t.test(x, y, paired=TRUE)
+
+# sc = sqrt((n*(var(x))+n*(var(y)))/(n*2))
+# cohen_d1 = round(abs(mean(x)-mean(y))/sc,3)
 bayesF = ttestBF(x = x, y = y, paired=TRUE)
 bayesF_d1 = round(exp(bayesF@bayesFactor[["bf"]]),3)
 
@@ -143,16 +158,16 @@ BP_table = list(list(
   anovaTab = forDrawingSigANOVA,
   post = forDrawingPost[["A"]][["bontab"]],
   bf = round(exp(bf@bayesFactor[["bf"]]),3),
-  cohen_d0 = cohen_d0,
+  cohen_d0 = abs(round(ttest_pair0_2[["statistic"]][["t"]] / sqrt(n),3)),
   bayesF_d0 = bayesF_d0,
-  cohen_d1 = cohen_d1,
+  cohen_d1 = abs(round(ttest_pair1_2[["statistic"]][["t"]] / sqrt(n),3)),
   bayesF_d1 = bayesF_d1
 ))
 names(BP_table) <- c('BP_table')
 
 anovaTabAll_e1 = c(anovaTabAll_e1,BP_table)
 
-#### Figure 2B (tertile) #####
+#### Figure 2B (tertile) -----------------------------------------------------------
 if(mmFlg){
   data = fromJSON(file="../[Python]PreProcessing/Exp1/data/data_tertile_mm.json")
 }else if(auFlg){
@@ -204,7 +219,7 @@ names(tertile_table) <- c('tertile_table')
 
 anovaTabAll_e1 = c(anovaTabAll_e1,tertile_table)
 
-# #### Figure 2B (heatmap) #####
+# #### Figure 2B (heatmap) ------------------------------------------------------------
 data=fromJSON(file="../[Python]PreProcessing/Exp1/heatmap/corr2.json")
 melted_data <- melt(data)
 p_values=fromJSON(file="../[Python]PreProcessing/Exp1/heatmap/p_values2.json")
@@ -212,8 +227,8 @@ melted_p_values <- melt(p_values)
 melted_data$p.value = round(melted_p_values$value,3)
 melted_data$value = round(melted_data$value,3)
 
-#### Figure 3A (cross-corr) #####
-data = fromJSON(file="../[Python]PreProcessing/Exp1/data/data_cross_corr.json")
+#### Figure 3A (cross-corr) -----------------------------------------------------------
+data = fromJSON(file="../[Python]PreProcessing/Exp1/data/data_CCF_trial_norm.json")
 
 dat <- list(matrix(unlist(data$raw),nrow=length(data$raw),byrow=T),
             matrix(unlist(data$raw_queue),nrow=length(data$raw_queue),byrow=T))
@@ -409,9 +424,11 @@ Participants reported the number of perceptual alternations from 0 to 5. Since t
 ($F$(`r round(anovaTabAll_e1$numOfTrial$anovaTab[2,]['df.col'],2)`,`r round(anovaTabAll_e1$numOfTrial$anovaTab[3,]['df.col'],2)`) = 
 `r round(anovaTabAll_e1$numOfTrial$anovaTab[2,]['f.col'],3)`, $p$ = `r round(anovaTabAll_e1$numOfTrial$anovaTab[2,]['p.col'],3)`, 
 $\eta^2_p$ = `r round(anovaTabAll_e1$numOfTrial$anovaTab[2,]['p.eta^2'],3)`, $BF_{10}$ = `r anovaTabAll_e1$numOfTrial$bf`). 
-Post analysis showed that the number of trials for 1-alt cases was significantly larger than for 0- and >1-alt cases (
-$t$(1, `r anovaTabAll_e1$numOfTrial$post[2,]$df`) = `r round(anovaTabAll_e1$numOfTrial$post[2,]$t,3)`, $p$ = `r round(anovaTabAll_e1$numOfTrial$post[2,]$p.value, 3)`, 
-$t$(1, `r anovaTabAll_e1$numOfTrial$post[1,]$df`) = `r round(anovaTabAll_e1$numOfTrial$post[1,]$t,3)`, $p$ = `r round(anovaTabAll_e1$numOfTrial$post[1,]$p.value, 3)`) 
+Post analysis showed that the number of trials for 1-alt cases was significantly larger than for 0- and >1-alt cases 
+($t$(`r anovaTabAll_e1$numOfTrial$post[2,]$df`) = `r round(anovaTabAll_e1$numOfTrial$post[2,]$t,3)`, $p$ = `r round(anovaTabAll_e1$numOfTrial$post[2,]$p.value, 3)`, 
+Cohen’s  $d_z$ = `r anovaTabAll_e1$numOfTrial$cohen_pair0_1`, $BF_{10}$ =  `r anovaTabAll_e1$numOfTrial$bayesF_pair0_1`; 
+$t$(`r anovaTabAll_e1$numOfTrial$post[1,]$df`) = `r round(anovaTabAll_e1$numOfTrial$post[1,]$t,3)`, $p$ = `r round(anovaTabAll_e1$numOfTrial$post[1,]$p.value, 3)`, 
+Cohen’s  $d_z$ = `r anovaTabAll_e1$numOfTrial$cohen_pair0_2`, $BF_{10}$ =  `r anovaTabAll_e1$numOfTrial$bayesF_pair0_2`) 
 at alpha level of 0.05/3 corrected by a Bonferroni-Holm method.
 RTs of each response category were 
 `r rt_ave[rt_ave$numOfSwitch == 0,]$RT` $\pm$ `r rt_sd[rt_sd$numOfSwitch == 0,]$RT` sec, 
@@ -429,9 +446,9 @@ __Figure 2A__ illustrates the grand-averaged baseline pupil changes across parti
 ($F$(`r round( anovaTabAll_e1$BP_table$anovaTab[2,]['df.col'],2)`,`r round( anovaTabAll_e1$BP_table$anovaTab[3,]['df.col'],2)`) = `r round( anovaTabAll_e1$BP_table$anovaTab[2,]['f.col'],3)`, 
 $p$ = `r round( anovaTabAll_e1$BP_table$anovaTab[2,]['p.col'],3)`, $\eta^2_p$ = `r round( anovaTabAll_e1$BP_table$anovaTab[2,]['p.eta^2'],3)`, $BF_{10}$ = `r  anovaTabAll_e1$BP_table$bf`). 
 The post-hoc multiple comparisons showed that the baseline pupil size in the >1-alt case was significantly larger than in the 0- and 1-alt cases 
-($t$(1, `r numOfsub-1`) = `r round(anovaTabAll_e1$BP_table$post[1,]$t,3)`, $p$ = `r round(anovaTabAll_e1$BP_table$post[1,]$p.value,3)`, 
+($t$(`r numOfsub-1`) = `r round(anovaTabAll_e1$BP_table$post[1,]$t,3)`, $p$ = `r round(anovaTabAll_e1$BP_table$post[1,]$p.value,3)`, 
 Cohen’s  $d_z$ = `r anovaTabAll_e1$BP_table$cohen_d0`, $BF_{10}$ =  `r anovaTabAll_e1$BP_table$bayesF_d0`; 
-$t$(1, `r numOfsub-1`) = `r round(anovaTabAll_e1$BP_table$post[2,]$t,3)`, $p$ =  `r round(anovaTabAll_e1$BP_table$post[2,]$p.value,3)`, 
+$t$(`r numOfsub-1`) = `r round(anovaTabAll_e1$BP_table$post[2,]$t,3)`, $p$ =  `r round(anovaTabAll_e1$BP_table$post[2,]$p.value,3)`, 
 Cohen’s  $d_z$ = `r anovaTabAll_e1$BP_table$cohen_d1`, $BF_{10}$ =  `r anovaTabAll_e1$BP_table$bayesF_d1`, respectively), 
 indicating that the baseline pupil size, prior to counting the number of alternations, was related to a subsequent number of perceptual transitions.
 The answered number of trials was significantly different among the 0-, 1-, and >1 cases as shown above. Such unbalanced trial numbers can cause biases in the statistical analysis and decreased statistical power. Thus, we performed an alternative analysis to avoid this potential statistical problem. We segregated the trials equally into five bins based on the rank order of baseline pupil size. Results are shown in Fig. 2B. The data were fitted by a simple regression model 
@@ -454,7 +471,7 @@ if(mmFlg){
 
 anovaTabAll_e2 = list()
 
-#### Behavioral(RT) ####
+#### Behavioral(RT) ----------------------------------------------------------------
 # anovakun(data_RT,"sA",long=T, peta=T)
 rt_sd = aggregate( RT ~ Responses, data = data_RT, FUN = "sd")
 rt_ave = aggregate( RT ~ Responses, data = data_RT, FUN = "mean")
@@ -464,22 +481,21 @@ rt_ave$RT = round(rt_ave$RT,3)
 # RT_table = forDrawingSigANOVA
 x = data_RT[data_RT$Responses == 0,]$RT
 y = data_RT[data_RT$Responses == 1,]$RT
-
+n = length(x)
 RT_table = t.test(x,y,var.equal=T,paired=T)
 
-cohen_d = cohen.d(x,y,paired=TRUE, within=TRUE)
 bf = ttestBF(x = x, y = y, paired=TRUE)
 
 RT_table = list(list(
   anovaTab = t.test(x,y,var.equal=T,paired=T),
-  cohend = round(abs(cohen_d[["estimate"]]),3),
+  cohend = abs(round(RT_table[["statistic"]][["t"]] / sqrt(n),3)),
   bf = round(exp(bf@bayesFactor[["bf"]]),3)
 ))
 names(RT_table) <- c('RT_table')
 
 anovaTabAll_e2 = c(anovaTabAll_e2,RT_table)
 
-#### Behavioral(number of switch and jitter) ####
+#### Behavioral(number of switch and jitter) -----------------------------------------
 saveLoc = "../[Python]PreProcessing/Exp2/data/"
 dat_jitter=fromJSON(file=paste(saveLoc,"numOfSwitch_jitter.json", sep = ""))
 
@@ -492,6 +508,7 @@ dat_jitter = aggregate( . ~ sub*Responses, data = ind_jitter, FUN = "mean")
 
 x = dat_jitter[dat_jitter$Responses == 0,]$jitter
 y = dat_jitter[dat_jitter$Responses == 1,]$jitter
+n = length(x)
 
 jitter_table_e2 = t.test(x,y,var.equal=T,paired=T)
 
@@ -499,15 +516,15 @@ cohen_d = cohen.d(x,y,paired=TRUE, within=TRUE)
 bf = ttestBF(x = x, y = y, paired=TRUE)
 
 jitter_table = list(list(
-  anovaTab =t.test(x,y,var.equal=T,paired=T),
-  cohend = round(abs(cohen_d[["estimate"]]),3),
+  anovaTab = t.test(x,y,var.equal=T,paired=T),
+  cohend = abs(round(jitter_table_e2[["statistic"]][["t"]] / sqrt(n),3)),
   bf = round(exp(bf@bayesFactor[["bf"]]),3)
 ))
 names(jitter_table) <- c('jitter_table')
 
 anovaTabAll_e2 = c(anovaTabAll_e2,jitter_table)
 
-#### Behavioral(trials) ####
+#### Behavioral(trials) ----------------------------------------------------------------
 data_numOfTrial = aggregate( numOfTrial ~ sub*Responses, data = data_corr, FUN = "max")
 
 ave_numOfTrial = aggregate( numOfTrial ~ Responses, data = data_numOfTrial, FUN = "mean")
@@ -517,15 +534,14 @@ sd_numOfTrial$numOfTrial = round(sd_numOfTrial$numOfTrial,2)
 
 x = data_numOfTrial[data_numOfTrial$Responses == 0,]$numOfTrial
 y = data_numOfTrial[data_numOfTrial$Responses == 1,]$numOfTrial
+n = length(x)
 
 numOfTrial_e2_table = t.test(x,y,var.equal=T,paired=T)
-
-cohen_d = cohen.d(x,y,paired=TRUE, within=TRUE)
 bf = ttestBF(x = x, y = y, paired=TRUE)
 
 numOfTrial_table = list(list(
   anovaTab = t.test(x,y,var.equal=T,paired=T),
-  cohend = round(abs(cohen_d[["estimate"]]),3),
+  cohend = abs(round(numOfTrial_e2_table[["statistic"]][["t"]] / sqrt(n),3)),
   bf = round(exp(bf@bayesFactor[["bf"]]),3)
 ))
 names(numOfTrial_table) <- c('numOfTrial_table')
@@ -544,19 +560,21 @@ data_res$type = NULL
 
 x = data_res[data_res$Responses == "unswitch",]$data_y
 y = data_res[data_res$Responses == "switch",]$data_y
+n = length(x)
+
 res = t.test(x,y,var.equal=T,paired=T)
 
 tVal = round(res[["statistic"]][["t"]],3)
 pVal = round(res[["p.value"]],3)
 
-cohen_d = cohen.d(x,y,paired=TRUE, within=TRUE)
+# cohen_d = cohen.d(x,y,paired=TRUE, within=TRUE)
 bf = ttestBF(x = x, y = y, paired=TRUE)
 
 BP_table = list(list(
   anovaTab = t.test(x,y,var.equal=T,paired=T),
   tVal =  round(res[["statistic"]][["t"]],3),
   pVal =  round(res[["p.value"]],3),
-  cohend = round(abs(cohen_d[["estimate"]]),3),
+  cohend = abs(round(res[["statistic"]][["t"]] / sqrt(n),3)),
   bf = round(exp(bf@bayesFactor[["bf"]]),3)
 ))
 names(BP_table) <- c('BP_table')
@@ -678,7 +696,7 @@ RT in the answer ‘yes’ (`r rt_ave[rt_ave$Responses == 0,]$RT` $\pm$ `r rt_sd
 
 ### Baseline pupil size
 Figure 3A shows the grand-averaged time-course of baseline pupil changes parameterized by alternation cases (yes or no). Consistent with Experiment 1, a paired t-test for averaged changes in baseline pupil size from -1000 ms to the response cue onset for each answer (i.e., the presence or absence of perceptual alternation) showed that the baseline pupil size in the presence of a perceptual alternation was significantly larger than in the absence of perceptual alternation 
-($t$(1, `r numOfSub_e2-1`) = `r round(anovaTabAll_e2$BP_table$tVal[1],3)`, $p$ = `r round(anovaTabAll_e2$BP_table$pVal[1],3)`, Cohen’s  $d_z$ = `r anovaTabAll_e2$BP_table$cohend`, $BF_{10}$ =  `r anovaTabAll_e2$BP_table$bf`).
+($t$(`r numOfSub_e2-1`) = `r round(anovaTabAll_e2$BP_table$tVal[1],3)`, $p$ = `r round(anovaTabAll_e2$BP_table$pVal[1],3)`, Cohen’s  $d_z$ = `r anovaTabAll_e2$BP_table$cohend`, $BF_{10}$ =  `r anovaTabAll_e2$BP_table$bf`).
 
 
 Following the same analysis procedure as in Experiment 1, we segregated the trials into five bins based on the ranked order of the normalized baseline pupil size. For each participant, we normalized the probability of perceptual alternation by z-scores and averaged them in each pupil size bin (Fig. 3B). The model fitted by a simple regression showed the significance 

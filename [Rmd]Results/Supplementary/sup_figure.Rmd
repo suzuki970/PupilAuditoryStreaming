@@ -1,0 +1,1073 @@
+---
+title: "Supplemental Figures"
+author: "Yuta Suzuki"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: word_document
+# output: 
+#   slidy_presentation:
+#     css: ../style.css
+     # reference_docx: results.docx
+     # word_document
+---
+
+Supplemental Figures for "Temporal dynamics of auditory bistable perception correlated with a fluctuation of baseline pupil size"
+
+Yuta Suzuki, Hsin-I Liao, Shigeto Furukawa
+
+NTT Communication Science Laboratories, NTT Corporation, Atsugi 243-0198, Japan
+
+*Corresponding author: Yuta Suzuki
+NTT Communication Science Laboratories, NTT Corporation, Atsugi 243-0198, Japan
+Tel: +81-046-240-3525, 
+E-mail: yuuta.suzuki.fc@hco.ntt.co.jp
+
+
+## Estimated mm results for Figure 2A and 3A
+```{r, message=FALSE, echo=FALSE,warning=FALSE,include=FALSE}
+
+countFigNum = 1
+mmFlg = TRUE
+auFlg = FALSE
+
+figOutput = FALSE
+nsFlag = FALSE
+
+anovaTabAll_sup = list()
+
+if(mmFlg){
+  load("../data/Exp1/figure2_mm.rda")
+}else if(auFlg){
+  load("../data/Exp1/figure2_au.rda")
+}else{
+  load("../data/Exp1/figure2_norm.rda")
+}
+
+numOfsub = length(unique(data_res_tonic$sub))
+
+data_res_tonic$sub = subName[data_res_tonic$sub]
+data_res_tonic$data_y = data_res_tonic$Size
+data_res_tonic$Size = NULL
+
+config = list(alpha = 0.4,
+              stride = 0.1,
+              label_x = "# of switch",
+              title = "",
+              grCol = c("#F8766D","#00BA38","#619CFF")
+)
+if(mmFlg){
+  config$label_y = "Baseline Pupil size [mm]"
+}else if(auFlg){
+  config$label_y = "Baseline Pupil size [a.u.]"
+}else{
+  config$label_y = "Baseline Pupil size  \n [z-scored]"
+}
+
+anovakun(data_res_tonic,"sA",long=T, peta=T,gg=T)
+sigPair = makeSigPair(forDrawingPost)
+
+data_res_tonic$numOfSwitch = factor(data_res_tonic$numOfSwitch,levels = unique(data_res_tonic$numOfSwitch))
+data_res_tonic$sub = factor(data_res_tonic$sub,levels = unique(data_res_tonic$sub))
+
+bf = anovaBF(data_y ~ numOfSwitch + sub, data=data_res_tonic, whichRandom = "sub",progress=FALSE)
+
+x = data_res_tonic[data_res_tonic$numOfSwitch == "2+",]$data_y
+y = data_res_tonic[data_res_tonic$numOfSwitch == "0",]$data_y
+n = length(x)
+# sc = sqrt((n*(var(x))+n*(var(y)))/(n*2))
+# cohen_d0 = round(abs(mean(x)-mean(y))/sc,3)
+ttest_pair0_2 = t.test(x, y, paired=TRUE)
+
+bayesF = ttestBF(x = x, y = y, paired=TRUE)
+bayesF_d0 = round(exp(bayesF@bayesFactor[["bf"]]),3)
+
+x = data_res_tonic[data_res_tonic$numOfSwitch == "2+",]$data_y
+y = data_res_tonic[data_res_tonic$numOfSwitch == "1",]$data_y
+# n = length(x)
+# sc = sqrt((n*(var(x))+n*(var(y)))/(n*2))
+# cohen_d1 = round(abs(mean(x)-mean(y))/sc,3)
+ttest_pair1_2 = t.test(x, y, paired=TRUE)
+
+bayesF = ttestBF(x = x, y = y, paired=TRUE)
+bayesF_d1 = round(exp(bayesF@bayesFactor[["bf"]]),3)
+
+BP_e1_table = list(list(
+  anovaTab = forDrawingSigANOVA,
+  post = forDrawingPost[["A"]][["bontab"]],
+  bf = round(exp(bf@bayesFactor[["bf"]]),3),
+  cohen_d0 = abs(round(ttest_pair0_2[["statistic"]][["t"]] / sqrt(n),3)),
+  bayesF_d0 = bayesF_d0,
+  cohen_d1 = abs(round(ttest_pair1_2[["statistic"]][["t"]] / sqrt(n),3)),
+  bayesF_d1 = bayesF_d1
+))
+names(BP_e1_table) <- c('BP_e1_table')
+
+anovaTabAll_sup = c(anovaTabAll_sup,BP_e1_table)
+
+p = dispBoxGraph(data_res_tonic,config,c("numOfSwitch"))
+
+if(mmFlg){
+  p <- drawSignificance(p,sigPair,7.5,0.05,nsFlag)
+  config$ylim = round(seq(3,8,0.5),2)
+  config$ylim_stride = 0.2
+  config$xlim = round(seq(1,3,1),2)
+  config$xlim_stride = 0.5
+}else if(auFlg){
+  p <- drawSignificance(p,sigPair,9400,100,nsFlag)
+  config$ylim = round(seq(4000,10000,1000),2)
+  config$ylim_stride = 200
+  config$xlim = round(seq(1,3,1),2)
+  config$xlim_stride = 0.5
+}else{
+  p <- drawSignificance(p,sigPair,0.4,0.05,nsFlag)
+  config$ylim = round(seq(-0.8,1,0.2),2)
+  config$ylim_stride = 0.1
+  config$xlim = round(seq(1,3,1),2)
+  config$xlim_stride = 0.5
+}
+p = setEmptyStyle(p,config)
+
+eval(parse(text=paste("p", countFigNum ,"=p", sep="")))
+countFigNum = countFigNum+1
+
+## Figure 3 Exp.2
+go1 = c("unswitch","switch")
+
+#### Figure4A(response) ####
+if(mmFlg){
+  load("../data/Exp2/figure3_mm.rda")
+}else if(auFlg){
+  load("../data/Exp2/figure3_au.rda")
+}else{
+  load("../data/Exp2/figure3_norm.rda")
+}
+
+data_res$Responses = go1[data_res$Responses+1]
+data_res$Responses = factor(data_res$Responses,levels = go1)
+
+data_res = data_res[,c(1,2,4,3)]
+config = list(
+  alpha = 0.4,
+  stride = 0.1,
+  label_x = "",
+  title = ""
+)
+if(mmFlg){
+  config$label_y = "Baseline Pupil size [mm]"
+}else if(auFlg){
+  config$label_y = "Baseline Pupil size [a.u.]"
+}else{
+  config$label_y = "Baseline Pupil size  \n [z-scored]"
+}
+data_res = data_res[data_res$type == 'size',]
+data_res$type = NULL
+
+anovakun(data_res,"sA",long=T, peta=T)
+
+data_res$sub = subName[data_res$sub]
+p = dispBoxGraph(data_res,config,c("Responses"))
+# geom_line(aes(group=sub),alpha=0.2)
+
+
+sigPair = NULL
+sigPair = cbind(sigPair,"unswitch")
+sigPair = cbind(sigPair,"<")
+sigPair = cbind(sigPair,"switch")
+sigPair = cbind(sigPair,forDrawingSigANOVA[2,]['p.col'])
+
+# p <- dispLineGraph(data_res,config,c("Responses"))
+
+if(mmFlg){
+  p <- drawSignificance(p,sigPair,7.5,0.05,nsFlag)
+  config$ylim = round(seq(3,8,0.5),2)
+  config$ylim_stride = 0.2
+  config$xlim = round(seq(1,2,1),2)
+  config$xlim_stride = 0.5
+}else if(auFlg){
+  p <- drawSignificance(p,sigPair,9400,100,nsFlag)
+  config$ylim = round(seq(4000,10000,1000),2)
+  config$ylim_stride = 200
+  config$xlim = round(seq(1,2,1),2)
+  config$xlim_stride = 0.5
+}else{
+  p <- drawSignificance(p,sigPair,0.4,0.05,nsFlag)
+  config$ylim = round(seq(-0.8,1,0.2),2)
+  config$ylim_stride = 0.1
+  config$xlim = round(seq(1,2,1),2)
+  config$xlim_stride = 0.5
+}
+
+p = setEmptyStyle(p,config)
+
+p <- p + theme(
+  legend.position = 'none'
+)
+
+eval(parse(text=paste("p", countFigNum ,"=p", sep="")))
+countFigNum = countFigNum+1
+
+numOfSub_e2 = length(unique(data_res$sub))
+
+x = data_res[data_res$Responses == "unswitch",]$data_y
+y = data_res[data_res$Responses == "switch",]$data_y
+
+res = t.test(x,y,var.equal=T,paired=T)
+# cohen_d = cohen.d(x,y,paired=TRUE, within=TRUE)
+bf = ttestBF(x = x, y = y, paired=TRUE)
+
+BP_e2_table = list(list(
+  anovaTab = t.test(x,y,var.equal=T,paired=T),
+  tVal = round(res[["statistic"]][["t"]],3),
+  pVal = round(res[["p.value"]],3),
+  cohend = abs(round(res[["statistic"]][["t"]] / sqrt(n),3)),
+  bf = round(exp(bf@bayesFactor[["bf"]]),3)
+))
+names(BP_e2_table) <- c('BP_e2_table')
+
+anovaTabAll_sup = c(anovaTabAll_sup,BP_e2_table)
+
+
+```
+
+```{r, message=FALSE, echo=FALSE, warning=FALSE, fig.width = 10, fig.height = 5}
+p = combineGraphs(seq(1,countFigNum-1),'p',NULL)
+plot(p)
+if(figOutput){
+  width_fig=10
+  height_fig=5
+  CairoFonts(regular = "Times","Times")
+  CairoPDF(file="./figure/SupFigure1",
+           width=width_fig, height=height_fig)
+  print(p)
+  dev.off()
+  #   
+  # width_fig=5
+  # height_fig=5
+  # CairoFonts(regular = "Times","Times")
+  # CairoPDF(file="./figure/SupFigure1B",
+  #          width=width_fig, height=height_fig)
+  # print(p2)
+  # dev.off()
+}
+```
+
+We illustrated the baseline pupil size using millimeters converted from pixels with the same analysis as __Figure 2A__ and __3A__ in the main manuscript. __Supplementary Figure 1A__ shows the grand-averaged baseline pupil changes across participants before the response cue onset, as a function of perceptual alternations number. The one-way repeated measures ANOVA revealed a significant main effect on the number of perceptual alternations 
+($F$(`r round(anovaTabAll_sup$BP_e1_table$anovaTab[2,]['df.col'],2)`,`r round(anovaTabAll_sup$BP_e1_table$anovaTab[3,]['df.col'],2)`) = `r round(anovaTabAll_sup$BP_e1_table$anovaTab[2,]['f.col'],3)`, 
+$p$ = `r round(anovaTabAll_sup$BP_e1_table$anovaTab[2,]['p.col'],3)`, $\eta^2_p$ = `r round(anovaTabAll_sup$BP_e1_table$anovaTab[2,]['p.eta^2'],3)`, $BF_{10}$ = `r anovaTabAll_sup$BP_e1_table$bf`). 
+The post-hoc multiple comparisons showed that the baseline pupil size in the >1-alt case was significantly larger than in the 0- and 1-alt cases 
+($t$(`r numOfsub-1`) = `r round(anovaTabAll_sup$BP_e1_table$post[1,]$t,3)`, $p$ = `r round(anovaTabAll_sup$BP_e1_table$post[1,]$p.value,3)`, 
+Cohen’s $d_z$ = `r anovaTabAll_sup$BP_e1_table$cohen_d0`, $BF_{10}$ =  `r anovaTabAll_sup$BP_e1_table$bayesF_d0`; 
+$t$(`r numOfsub-1`) = `r round(anovaTabAll_sup$BP_e1_table$post[2,]$t,3)`, $p$ =  `r round(anovaTabAll_sup$BP_e1_table$post[2,]$p.value,3)`, 
+Cohen’s $d_z$ = `r anovaTabAll_sup$BP_e1_table$cohen_d1`, $BF_{10}$ =  `r anovaTabAll_sup$BP_e1_table$bayesF_d1`, respectively), 
+__Supplementary Figure 1B__ shows the grand-averaged time-course of baseline pupil changes parameterized by alternation cases (yes or no). A paired t-test for averaged changes in baseline pupil size from -1000 ms to the response cue onset for each answer (i.e., the presence or absence of perceptual alternation) showed that the baseline pupil size in the presence of a perceptual alternation was significantly larger than in the absence of perceptual 
+($t$(`r numOfSub_e2-1`) = `r round(anovaTabAll_sup$BP_e2_table$tVal[1],3)`, $p$ = `r round(anovaTabAll_sup$BP_e2_table$pVal[1],3)`, Cohen’s  $d_z$ = `r anovaTabAll_sup$BP_e2_table$cohend`, $BF_{10}$ =  `r anovaTabAll_sup$BP_e2_table$bf`).
+
+
+## Transient Pupil Dilation/Constriction (PD/PC)
+```{r, message=FALSE, echo=FALSE, warning=FALSE,include=FALSE}
+
+g2 = c('unswitch','switch')
+countFigNum = 1
+mmFlg = FALSE
+auFlg = FALSE
+
+config = list(
+  alpha = 0.4,
+  stride = 0.1,
+  label_x = "",
+  title = ""
+)
+
+#### data loading ------------------------------------------------------------
+if(mmFlg){
+  data=fromJSON(file="../../[Python]PreProcessing/Exp1/data/PDPCevents_mm.json")
+}else if(auFlg){
+  data=fromJSON(file="../../[Python]PreProcessing/Exp1/data/PDPCevents_au.json")
+}else{
+  data=fromJSON(file="../../[Python]PreProcessing/Exp1/data/PDPCevents_norm.json")
+}
+
+indices = NULL
+events = NULL
+sub = NULL
+numOfSwitch = NULL
+numOfTrial = NULL
+baseline = NULL
+
+for(i in 1:length(data$event)){
+  indices = rbind(indices, matrix(data[["indices"]][[i]])-4000 )
+  events = rbind(events, matrix(data[["event"]][[i]]))
+  sub = rbind(sub,matrix(rep(data$sub[i],length(data[["indices"]][[i]]))))
+  numOfSwitch = rbind(numOfSwitch,matrix(rep(data$numOfSwitch[i],length(data[["indices"]][[i]]))))
+  numOfTrial = rbind(numOfTrial,matrix(rep(data$numOfTrial[i],length(data[["indices"]][[i]]))))
+}
+
+# data$numOfTrial[i]
+g1 = c('constriction','dilation')
+g2 = c('0','1','2+')
+# g2 = c('0','1')
+g3 = c('unswitch','switch','switch')
+
+ind_data_e1_raster = data.frame(
+  sub = sub,
+  numOfSwitch = numOfSwitch,
+  indices = indices,
+  events = g1[events+1],
+  numOfTrial = numOfTrial,
+  exp = 'Exp1'
+)
+ind_data_e1_raster[ind_data_e1_raster$numOfSwitch > length(g2)-2,]$numOfSwitch = length(g2)-1
+ind_data_e1_raster$numOfSwitch = g2[ind_data_e1_raster$numOfSwitch+1]
+
+ind_data_e1 = data.frame(
+  sub = rep(data$sub,2),
+  numOfSwitch = rep(data$numOfSwitch,2),
+  data_y_all = c(data$dilation_time,data$constriction_time),
+  events = rep(c('dilation','constriction'),times=c(length(data$sub),length(data$sub))),
+  baseline = data$Baseline_aft,
+  exp = 'Exp1'
+)
+
+tmpD = matrix(unlist(data$dilation_time_each),nrow=length(data$dilation_time_each),byrow=T)
+tmpC = matrix(unlist(data$constriction_time_each),nrow=length(data$constriction_time_each),byrow=T)
+numOfTrial = dim(tmpD)[1]
+lengthOfTime = dim(tmpD)[2]
+
+ind_data_each_e1 <- data.frame(
+  sub =  rep( data$sub, times = rep( lengthOfTime, numOfTrial)),
+  data_y = c(t(matrix(t(tmpD),nrow=1)),t(matrix(t(tmpC),nrow=1))),
+  data_x = 1:9,
+  numOfTrial = rep( 1:numOfTrial, times = rep( lengthOfTime, numOfTrial)),
+  numOfSwitch =  rep( data$numOfSwitch, times = rep( lengthOfTime, numOfTrial)),
+  baseline =  rep( data$Baseline_aft, times = rep( lengthOfTime, numOfTrial)),
+  events =  c(rep( rep('dilation',numOfTrial), times = rep( lengthOfTime, numOfTrial)),rep( rep('constriction',numOfTrial), times = rep( lengthOfTime, numOfTrial))),
+  exp = 'Exp1'
+)
+
+
+ind_data_e1[ind_data_e1$numOfSwitch > length(g2)-2,]$numOfSwitch = length(g2)-1
+numOfSub_e1 = length(unique(ind_data_e1$sub))
+
+#### Exp2
+if(mmFlg){
+  data=fromJSON(file="../../[Python]PreProcessing/Exp2/data/PDPCevents_mm.json")
+}else if(auFlg){
+  data=fromJSON(file="../../[Python]PreProcessing/Exp2/data/PDPCevents_au.json")
+}else{
+  data=fromJSON(file="../../[Python]PreProcessing/Exp2/data/PDPCevents_norm.json")
+}
+
+indices = NULL
+events = NULL
+sub = NULL
+responses = NULL
+numOfTrial = NULL
+for(i in 1:length(data$event)){
+  if (length(data[["indices"]][[i]]) != 0){
+    indices = rbind(indices, matrix(data[["indices"]][[i]])-4000 )
+    events = rbind(events, matrix(data[["event"]][[i]]))
+    sub = rbind(sub,matrix(rep(data$sub[i],length(data[["indices"]][[i]]))))
+    responses = rbind(responses,matrix(rep(data$responses[i],length(data[["indices"]][[i]]))))
+    numOfTrial = rbind(numOfTrial,matrix(rep(data$numOfTrial[i],length(data[["indices"]][[i]]))))
+  }
+}
+
+ind_data_e2_raster = data.frame(
+  sub = sub,
+  numOfSwitch = responses,
+  indices = indices,
+  events = g1[events+1],
+  numOfTrial = numOfTrial,
+  exp = 'Exp2'
+)
+
+ind_data_e2 = data.frame(
+  sub = rep(data$sub,2),
+  numOfSwitch = rep(data$responses,2),
+  data_y_all = c(data$dilation_time,data$constriction_time),
+  events = rep(c('dilation','constriction'),times=c(length(data$sub),length(data$sub))),
+  baseline = data$Baseline_aft,
+  exp = 'Exp2'
+)
+numOfSub_e2 = length(unique(ind_data_e2$sub))
+
+
+tmpD = matrix(unlist(data$dilation_time_each),nrow=length(data$dilation_time_each),byrow=T)
+tmpC = matrix(unlist(data$constriction_time_each),nrow=length(data$constriction_time_each),byrow=T)
+numOfTrial = dim(tmpD)[1]
+lengthOfTime = dim(tmpD)[2]
+
+ind_data_each_e2 <- data.frame(
+  sub =  rep( data$sub, times = rep( lengthOfTime, numOfTrial)),
+  data_y = c(t(matrix(t(tmpD),nrow=1)),t(matrix(t(tmpC),nrow=1))),
+  data_x = 1:9,
+  numOfTrial = rep( 1:numOfTrial, times = rep( lengthOfTime, numOfTrial)),
+  numOfSwitch =  rep( data$responses, times = rep( lengthOfTime, numOfTrial)),
+  baseline =  rep( data$Baseline_aft, times = rep( lengthOfTime, numOfTrial)),
+  events =  c(rep( rep('dilation',numOfTrial), times = rep( lengthOfTime, numOfTrial)),rep( rep('constriction',numOfTrial), times = rep( lengthOfTime, numOfTrial))),
+  exp = 'Exp2'
+)
+
+# ####### Each time slot #####
+ind_data_raster = rbind(ind_data_e1_raster,ind_data_e2_raster)
+
+ind_data = rbind(ind_data_e1,ind_data_e2)
+ind_data$numOfSwitch = g3[as.integer(ind_data$numOfSwitch)+1]
+ind_data$numOfSwitch = factor(ind_data$numOfSwitch,c('unswitch','switch'))
+
+ind_data_each = rbind(ind_data_each_e1,ind_data_each_e2)
+ind_data_each$numOfSwitch = g3[as.integer(ind_data_each$numOfSwitch)+1]
+ind_data_each$numOfSwitch = factor(ind_data_each$numOfSwitch,c('unswitch','switch'))
+
+
+tmp = ind_data_each[ind_data_each$events == 'dilation',]
+tmp = tmp[tmp$data_x > 2 & tmp$data_x < 9,]
+g = c("","","-2 - -1s","-1 - 0s","0 - 1s","1 - 2s","2 - 3s","3 - 4s","4 - 5s")
+tmp$data_x = g[tmp$data_x]
+tmp$data_x = factor(tmp$data_x,levels = c("-2 - -1s","-1 - 0s","0 - 1s","1 - 2s","2 - 3s","3 - 4s","4 - 5s"))
+
+data_anovaPD = aggregate( data_y ~ sub*numOfSwitch*data_x*numOfTrial*exp, data =tmp, FUN = "sum")
+data_anovaPD = aggregate( data_y ~ sub*numOfSwitch*data_x*exp, data = data_anovaPD, FUN = "mean")
+
+reject = NULL
+th = dim(data_anovaPD[data_anovaPD$sub == 1,])[1]
+for(iSub in unique(data_anovaPD$sub)){
+  if(dim(data_anovaPD[data_anovaPD$sub == iSub,])[1] != th){
+    reject = rbind(reject,iSub)
+  }
+}
+for(iSub in reject){
+  data_anovaPD = data_anovaPD[data_anovaPD$sub != iSub,]
+  # data_anovaPC = data_anovaPC[data_anovaPC$sub != iSub,]
+}
+
+config$label_x = ''
+config$label_y = 'number of PD events'
+p = ggplot(data_anovaPD,aes(x=numOfSwitch, y=data_y, group=interaction(exp,data_x))) +
+  xlab(config$label_x) + 
+  ylab(config$label_y) +
+  geom_boxplot(aes(x=numOfSwitch,group=interaction(numOfSwitch,data_x))) +
+  facet_grid(exp~data_x) +
+  theme(
+    axis.text.x = element_text(angle = 15)
+  )
+
+anovakun(data_anovaPD,"sABC",long=T, peta=T,gg=T)
+
+PD_table = list(list(
+  anovaTab = forDrawingSigANOVA
+))
+names(PD_table) <- c('PD_table')
+
+anovaTabAll_sup = c(anovaTabAll_sup,PD_table)
+
+config$ylim = round(seq(0,1.25,0.25),2)
+config$ylim_stride = 0.02
+config$xlim = round(seq(1,2,1),2)
+config$xlim_stride = 0.5
+
+p = setEmptyStyle(p,config)
+
+eval(parse(text=paste("p", countFigNum ,"=p", sep="")))
+countFigNum = countFigNum+1
+
+# average  -----------------------------------------------------------------
+# tmp = ind_data_each[ind_data_each$events == 'dilation',]
+# tmp = tmp[tmp$data_x > 4 & tmp$data_x < 9,]
+# g = c("","","-2 - -1s","-1 - 0s","0 - 1s","1 - 2s","2 - 3s","3 - 4s","4 - 5s")
+# tmp$data_x = g[tmp$data_x]
+# tmp$data_x = factor(tmp$data_x,levels = c("-2 - -1s","-1 - 0s","0 - 1s","1 - 2s","2 - 3s","3 - 4s","4 - 5s"))
+# 
+# data_anovaPD = aggregate( data_y ~ sub*numOfSwitch*numOfTrial*exp, data =tmp, FUN = "sum")
+# data_anovaPD = aggregate( data_y ~ sub*numOfSwitch*exp, data = data_anovaPD, FUN = "mean")
+# 
+# reject = NULL
+# th = dim(data_anovaPD[data_anovaPD$sub == 1,])[1]
+# for(iSub in unique(data_anovaPD$sub)){
+#   if(dim(data_anovaPD[data_anovaPD$sub == iSub,])[1] != th){
+#     reject = rbind(reject,iSub)
+#   }
+# }
+# for(iSub in reject){
+#   data_anovaPD = data_anovaPD[data_anovaPD$sub != iSub,]
+#   # data_anovaPC = data_anovaPC[data_anovaPC$sub != iSub,]
+# }
+# anovakun(data_anovaPD,"sAB",long=T, peta=T,gg=T)
+# 
+# p = dispBoxGraph(data_anovaPD,config,c("numOfSwitch","exp"))+
+#   facet_grid(. ~ exp )
+
+# # baseline PD corr. -----------------------------------------------------------------
+tmp = ind_data_each[ind_data_each$events == 'dilation',]
+tmp = tmp[tmp$data_x > 4 & tmp$data_x < 9,]
+
+g = c("","","-2 - -1s","-1 - 0s","0 - 1s","1 - 2s","2 - 3s","3 - 4s","4 - 5s")
+tmp$data_x = g[tmp$data_x]
+tmp$data_x = factor(tmp$data_x,levels = c("-2 - -1s","-1 - 0s","0 - 1s","1 - 2s","2 - 3s","3 - 4s","4 - 5s"))
+
+baseline_anovaPD = aggregate( baseline ~ sub*numOfTrial*exp, data =tmp, FUN = "mean")
+data_anovaPD = aggregate( data_y ~ sub*numOfTrial*exp, data =tmp, FUN = "sum")
+data_anovaPD$baseline = baseline_anovaPD$baseline
+
+data_anovaPD$numEvents = data_anovaPD$data_y
+
+tmp =  aggregate( baseline ~ sub*exp, data =data_anovaPD, FUN = "mean")
+reject = NULL
+th = dim(tmp[tmp$sub == 1,])[1]
+for(iSub in unique(tmp$sub)){
+  if(dim(tmp[tmp$sub == iSub,])[1] != th){
+    reject = rbind(reject,iSub)
+  }
+}
+for(iSub in reject){
+  data_anovaPD = data_anovaPD[data_anovaPD$sub != iSub,]
+}
+
+data_corr = NULL
+for(iSub in unique(data_anovaPD$sub)){
+  tmp = data_anovaPD[data_anovaPD$sub == iSub,]
+  x = as.numeric(tmp$numEvents)
+  y = tmp$baseline
+  f <- y ~  a*x + b
+  model <- nls(f, start = c(a = 0, b = 0))
+  data_corr = rbind(data_corr,
+                    data.frame(
+                      sub = subName[iSub],
+                      r = cor.test(x,y)[['estimate']][['cor']],
+                      pVal = round(summary(model)[["coefficients"]]['a',]['Pr(>|t|)'],4),
+                      interc = summary(model)[["coefficients"]]['b',]['Estimate'],
+                      slope = summary(model)[["coefficients"]]['a',]['Estimate']
+                    )
+  )
+}
+
+data_anovaPD$numEvents =factor(data_anovaPD$numEvents,levels = sort(unique(data_anovaPD$numEvents)))
+data_anovaPD$sub = subName[data_anovaPD$sub]
+
+
+data_anovaPD_ave = aggregate( baseline ~ sub*numEvents, data =data_anovaPD, FUN = "sum")
+x = as.numeric(data_anovaPD_ave$numEvents)
+y = data_anovaPD_ave$baseline
+cor.test(x,y)
+p = ggplot()+
+  geom_point(data=data_anovaPD_ave,aes(x=numEvents,y=baseline,color=numEvents))
+
+
+p = ggplot()+
+  geom_point(data=data_anovaPD,aes(x=numEvents,y=baseline,color=numEvents))+
+  scale_color_manual(values=brewer.pal(10, "Greys")[4:9])+
+  facet_wrap(.~sub,ncol=5)+
+  geom_abline(data=data_corr,aes(intercept = interc, slope = slope))+
+  # geom_abline(data=data_corr,aes(intercept = Cinterc2, slope = slope2),color="red")+
+  geom_text(data = data_corr,x = 5.5,y=-3.0,
+            aes(label = paste("R = ",sprintf("%s", round(r,3)),sep="")),color='black',size = 5) +
+  geom_text(data = data_corr,x = 5.5,y=-3.7,
+            aes(label = paste("p = ",sprintf("%s", round(pVal,3)),sep="")),color='black',size = 5) +
+  # geom_line(aes(color=sub,group = sub))+
+  xlab("The rank order of PD event") + ylab("Baseline pupil size [z-scored]") +
+  theme(
+    legend.position = 'none'
+  )
+
+# p = dispBoxGraph(data_anovaPD,config,c("numEvents"))
+
+if(mmFlg){
+  config$ylim = round(seq(3,7.5,0.5),2)
+  config$ylim_stride = 0.05
+  config$xlim = round(seq(1,6,1),2)
+  config$xlim_stride = 0.5
+}else{
+  config$ylim = round(seq(-4,4,2),2)
+  config$ylim_stride = 0.5
+  config$xlim = round(seq(1,6,1),2)
+  config$xlim_stride = 0.5
+}
+
+p = setEmptyStyle(p,config)
+
+eval(parse(text=paste("p", countFigNum ,"=p", sep="")))
+countFigNum = countFigNum+1
+
+# x = as.numeric(data_anovaPD$numEvents)
+# y = data_anovaPD$baseline
+# f <- y ~  a*x + b
+# model <- nls(f, start = c(a = 0, b = 0))
+# 
+# data_anovaPD$numEvents = as.numeric(data_anovaPD$numEvents)
+# bf = regressionBF(data_y ~ numEvents, data = data_anovaPD)
+
+# BPPD_table = list(list(
+#   model = model,
+#   r =cor.test(x,y),
+#   tVal = round(summary(model)[["coefficients"]]['a',]['t value'],4),
+#   pVal = round(summary(model)[["coefficients"]]['a',]['Pr(>|t|)'],4),
+#   bf = round(exp(bf@bayesFactor[["bf"]]),3)
+# ))
+# names(BPPD_table) <- c('BPPD_table')
+
+# anovaTabAll_sup = c(anovaTabAll_sup,BPPD_table)
+```
+
+```{r, message=FALSE, echo=FALSE, warning=FALSE,fig.width = 10, fig.height = 10}
+plot(p1)
+if(figOutput){
+  width_fig=10
+  height_fig=6
+  CairoFonts(regular = "Times","Times")
+  CairoPDF(file="./figure/SupFigure2",
+           width=width_fig, height=height_fig)
+  print(p1)
+  dev.off()
+}
+```
+```{r, message=FALSE, echo=FALSE, warning=FALSE,fig.width = 8, fig.height = 8}
+plot(p2)
+if(figOutput){
+  width_fig=15
+  height_fig=12
+  CairoFonts(regular = "Times","Times")
+  CairoPDF(file="./figure/SupFigure3",
+           width=width_fig, height=height_fig)
+  print(p2)
+  dev.off()
+}
+```
+
+There was a concern that the PD events and observed baseline pupil size were not sufficiently independent measures. For example, if the transient pupil dilation had a sufficiently slow time decay, the apparent baseline diameter would build up with accumulated PD events. To address this concern that the baseline pupil size might be affected by the PD events, we calculated the number of PD events in the baseline pupil size analysis in every 1-s time bin __(Supplementary Fig. 2)__ and the correlation between the baseline pupil size and number of transient PD events __(Supplementary Fig. 3)__.
+
+
+The three-way repeated measures ANOVA (the presence of alternation x time bins x experiments), however, only revealed a significant main effect of time bins 
+($F$(`r round(anovaTabAll_sup$PD_table$anovaTab[4,]['df.col'],2)`,`r round(anovaTabAll_sup$PD_table$anovaTab[5,]['df.col'],2)`) = `r round(anovaTabAll_sup$PD_table$anovaTab[4,]['f.col'],3)`, 
+$p$ = `r round(anovaTabAll_sup$PD_table$anovaTab[4,]['p.col'],3)`, $\eta^2_p$ = `r round(anovaTabAll_sup$PD_table$anovaTab[4,]['p.eta^2'],3)`).
+The post-hoc multiple comparisons showed that the number of PD events in time bin of 1 to 2s were larger than −2 to −1s, −1 to 0s, 2 to 3s, 3 to 4s (adj.p < 0.05). This could be explained by motor responses such as button-press responses __(Einhäuser et al., 2010; Grenzebach et al., 2021; Hupé et al., 2009)__. Other main factors and interactions were not significant (p > 0.05).
+
+
+We further calculated the correlation between the baseline pupil size and the number of transient PD events as shown in __Supplementary Fig.3__. The number of PD events during the early 4-s part of the observation period (see __Figure 1__) were summed and their order ranked across trials for each subject. The baseline pupil size after the window for calculating the number of PD events was parameterized by the rank order of the PD events. The data were fitted by a simple regression model in each subject. The correlation coefficient and p-value of the correlation are described in each panel. Although three participants out of 19 had a significant positive correlation, it turns out that there seems to be no strong statistical evidence that increasing the number of PDs can explain the baseline pupil size in both experiments. From these analyses, we conclude that our results cannot be attributed to concerns that the baseline pupil size might be affected by the PD events.
+
+
+<!-- ## CFF -->
+<!-- ```{r, message=FALSE, echo=FALSE, warning=FALSE,include=FALSE} -->
+
+<!-- mmFlg=FALSE -->
+<!-- auFlg=FALSE -->
+<!-- countFigNum = 1 -->
+
+<!-- if(mmFlg){ -->
+<!--   data=fromJSON(file="../../[Python]PreProcessing/Exp1/data/PDPCevents_CFF_mm.json") -->
+<!-- }else if(auFlg){ -->
+<!--   data=fromJSON(file="../../[Python]PreProcessing/Exp1/data/PDPCevents_CFF_au.json") -->
+<!-- }else{ -->
+<!--   data=fromJSON(file="../../[Python]PreProcessing/Exp1/data/PDPCevents_CFF_norm.json") -->
+<!-- } -->
+
+<!-- # dataset -------------------------------------------------------------------- -->
+<!-- dat <- list(matrix(unlist(data$raw),nrow=length(data$raw),byrow=T)) -->
+
+<!-- names(dat) <- c('trial') -->
+<!-- ggName =  c('shuffled','raw') -->
+<!-- numOfTrial = dim(dat$trial)[1] -->
+<!-- numOfSub = length(unique(data$sub)) -->
+<!-- lengthOfTime = dim(dat$trial)[2] -->
+
+<!-- ind_data <- data.frame( -->
+<!--   sub =  rep( data$sub, times = rep( lengthOfTime, numOfTrial)), -->
+<!--   data_y = c(t(matrix(t(dat$trial),nrow=1))), -->
+<!--   condition = rep(ggName[data$randFlag+1], times = rep( lengthOfTime, numOfTrial)), -->
+<!--   data_x = data$lags_trial -->
+<!-- ) -->
+
+<!-- numOfTrial = dim(dat$seconds)[1] -->
+<!-- numOfSub = length(unique(data$sub)) -->
+<!-- lengthOfTime = dim(dat$seconds)[2] -->
+
+<!-- # # TRIALS ------------------------------------------------------------------ -->
+
+<!-- data_ccorr = aggregate( data_y ~ sub*condition*data_x, data = ind_data, FUN = "mean") -->
+<!-- data_ccorr = data_ccorr[order(data_ccorr$sub,data_ccorr$condition),] -->
+
+<!-- config = list(lim_x = c(min(data_ccorr$data_x),max(data_ccorr$data_x)), -->
+<!--               lim_y = c(-0.2, 0.2), -->
+<!--               sigBarLoc = -0.1, -->
+<!--               alpha = 0.4, -->
+<!--               stride = 0.1, -->
+<!--               label_x = "Lag of # of trials", -->
+<!--               label_y = "Correlation coefficient", -->
+<!--               title = "" -->
+<!-- ) -->
+
+<!-- pVal = NULL -->
+<!-- for (i in 1:dim(dat$trial)[2]){ -->
+<!--   tmp = data_ccorr[data_ccorr$data_x == data_ccorr$data_x[i],] -->
+<!--   d = t.test(tmp[tmp$condition == ggName[1],]$data_y, -->
+<!--              tmp[tmp$condition == ggName[2],]$data_y) -->
+<!--   pVal = rbind(pVal,round(d[["p.value"]], digits = 4)) -->
+<!-- } -->
+<!-- q.values <- p.adjust(pVal, method = "BH") -->
+
+<!-- dat_p = data.frame( -->
+<!--   pVal = q.values, -->
+<!--   data_y = 1, -->
+<!--   data_x = data$lags_trial, -->
+<!--   condition='sig' -->
+<!-- ) -->
+
+<!-- dat_p['flag'] = rep('gray',dim(dat_p)[1]) -->
+<!-- ind = dat_p['pVal'] < 0.1 & dat_p['pVal'] > 0.05 -->
+<!-- dat_p['data_y'][ind] = config$sigBarLoc -->
+<!-- dat_p['flag'][ind] = 'gray' -->
+<!-- ind = dat_p['pVal'] < 0.05 -->
+<!-- dat_p['data_y'][ind] = config$sigBarLoc -->
+<!-- dat_p['flag'][ind] = 'black' -->
+
+<!-- p <- disp(data_ccorr,config,1,c("condition","condition"))+ -->
+<!--   geom_point(data=dat_p, aes(x=data_x, y = data_y),color=dat_p$flag, size = 2,shape=15)+ -->
+<!--   geom_vline(xintercept=0,colour="black",size=0.5) -->
+
+<!-- p <- p + theme( -->
+<!--   # legend.position = 'none' -->
+<!--   legend.position = c(0.8, 0.9), -->
+<!--   legend.text=element_text(size=14) -->
+<!-- ) -->
+
+<!-- eval(parse(text=paste("p", countFigNum ,"=p", sep=""))) -->
+<!-- countFigNum = countFigNum+1 -->
+
+<!-- if(mmFlg){ -->
+<!--   data=fromJSON(file="../../[Python]PreProcessing/Exp2/data/PDPCevents_CFF_mm.json") -->
+<!-- }else if(auFlg){ -->
+<!--   data=fromJSON(file="../../[Python]PreProcessing/Exp2/data/PDPCevents_CFF_au.json") -->
+<!-- }else{ -->
+<!--   data=fromJSON(file="../../[Python]PreProcessing/Exp2/data/PDPCevents_CFF_norm.json") -->
+<!-- } -->
+
+<!-- # dataset -------------------------------------------------------------------- -->
+<!-- dat <- list(matrix(unlist(data$raw),nrow=length(data$raw),byrow=T)) -->
+
+<!-- names(dat) <- c('trial') -->
+<!-- ggName =  c('shuffled','raw') -->
+<!-- numOfTrial = dim(dat$trial)[1] -->
+<!-- numOfSub = length(unique(data$sub)) -->
+<!-- lengthOfTime = dim(dat$trial)[2] -->
+
+<!-- ind_data <- data.frame( -->
+<!--   sub =  rep( data$sub, times = rep( lengthOfTime, numOfTrial)), -->
+<!--   data_y = c(t(matrix(t(dat$trial),nrow=1))), -->
+<!--   condition = rep(ggName[data$randFlag+1], times = rep( lengthOfTime, numOfTrial)), -->
+<!--   data_x = data$lags_trial -->
+<!-- ) -->
+
+<!-- numOfTrial = dim(dat$seconds)[1] -->
+<!-- numOfSub = length(unique(data$sub)) -->
+<!-- lengthOfTime = dim(dat$seconds)[2] -->
+
+<!-- data_ccorr = aggregate( data_y ~ sub*condition*data_x, data = ind_data, FUN = "mean") -->
+<!-- data_ccorr = data_ccorr[order(data_ccorr$sub,data_ccorr$condition),] -->
+
+<!-- pVal = NULL -->
+<!-- for (i in 1:dim(dat$trial)[2]){ -->
+<!--   tmp = data_ccorr[data_ccorr$data_x == data_ccorr$data_x[i],] -->
+<!--   d = t.test(tmp[tmp$condition == ggName[1],]$data_y, -->
+<!--              tmp[tmp$condition == ggName[2],]$data_y) -->
+<!--   pVal = rbind(pVal,round(d[["p.value"]], digits = 4)) -->
+<!-- } -->
+<!-- q.values <- p.adjust(pVal, method = "BH") -->
+
+<!-- dat_p = data.frame( -->
+<!--   pVal = q.values, -->
+<!--   data_y = 1, -->
+<!--   data_x = data$lags_trial, -->
+<!--   condition='sig' -->
+<!-- ) -->
+
+<!-- dat_p['flag'] = rep('gray',dim(dat_p)[1]) -->
+<!-- ind = dat_p['pVal'] < 0.1 & dat_p['pVal'] > 0.05 -->
+<!-- dat_p['data_y'][ind] = config$sigBarLoc -->
+<!-- dat_p['flag'][ind] = 'gray' -->
+<!-- ind = dat_p['pVal'] < 0.05 -->
+<!-- dat_p['data_y'][ind] = config$sigBarLoc -->
+<!-- dat_p['flag'][ind] = 'black' -->
+
+<!-- p <- disp(data_ccorr,config,1,c("condition","condition"))+ -->
+<!--   geom_point(data=dat_p, aes(x=data_x, y = data_y),color=dat_p$flag, size = 2,shape=15)+ -->
+<!--   geom_vline(xintercept=0,colour="black",size=0.5) -->
+
+<!-- p <- p + theme( -->
+<!--   # legend.position = 'none' -->
+<!--   legend.position = c(0.8, 0.9), -->
+<!--   legend.text=element_text(size=14) -->
+<!-- ) -->
+
+<!-- eval(parse(text=paste("p", countFigNum ,"=p", sep=""))) -->
+<!-- countFigNum = countFigNum+1 -->
+
+
+<!-- ``` -->
+
+<!-- ```{r, message=FALSE, echo=FALSE, warning=FALSE,fig.width = 10, fig.height = 10} -->
+<!-- p = combineGraphs(seq(1,countFigNum-1),'p',NULL) -->
+<!-- plot(p) -->
+<!-- if(figOutput){ -->
+<!--   width_fig=5 -->
+<!--   height_fig=6 -->
+<!--   CairoFonts(regular = "Times","Times") -->
+<!--   CairoPDF(file="./figure/SupFigure3", -->
+<!--            width=width_fig, height=height_fig) -->
+<!--   print(p) -->
+<!--   dev.off() -->
+<!-- } -->
+<!-- ``` -->
+
+<!-- ## Additinal figures -->
+<!-- ```{r, message=FALSE, echo=FALSE, warning=FALSE,fig.width = 10, fig.height = 10} -->
+
+<!-- countFigNum = 1 -->
+<!-- load("./data/Figure3.RData") -->
+
+<!-- #### Figure3D(LMM) ######## -->
+<!-- data=fromJSON(file="./data/data_include_past2.json") -->
+<!-- pVal = NULL -->
+
+<!-- betaWtFunc = data.frame() -->
+<!-- tmpAIC_model2 = NULL -->
+<!-- tmpAIC_model1 = NULL -->
+<!-- for(i in -20:20){ -->
+<!--   ind_data <- data.frame( -->
+<!--     sub =  unlist(data$sub), -->
+<!--     PDR = unlist(data[[paste("PDR_lag",i,sep="")]]), -->
+<!--     ave = unlist(data[["ave"]]), -->
+<!--     Baseline = unlist(data[["Baseline"]]), -->
+<!--     diff = unlist(data[["diff"]]), -->
+<!--     numOfSwitch = unlist(data[["numOfSwitch"]]) -->
+<!--   ) -->
+
+<!--   ind_data[ind_data$numOfSwitch > 2,]$numOfSwitch = 2 -->
+<!--   ind_data = ind_data[ind_data$PDR != 0,] -->
+
+<!--   model = lmer( numOfSwitch ~ PDR + (1+PDR|sub),ind_data) -->
+<!--   gt = ranef(model)[["sub"]][["PDR"]] -->
+
+<!--   model = summary(model) -->
+
+<!--   pVal = rbind(pVal,model[["coefficients"]]['PDR',]['Pr(>|t|)']) -->
+
+<!--   subpVal=NULL -->
+<!--   for(iSub in unique(unlist(data$sub))){ -->
+<!--     tmp  = ind_data[ind_data$sub == iSub,] -->
+<!--     submodel = lm(numOfSwitch ~ PDR, data = tmp) -->
+<!--     subpVal = rbind(subpVal,summary(submodel)[["coefficients"]]['PDR',]['Pr(>|t|)']) -->
+<!--   } -->
+
+<!--   betaWt = data.frame( -->
+<!--     sub = unique(unlist(data$sub)), -->
+<!--     data_y = gt + model[["coefficients"]]['PDR',]['Estimate'], -->
+<!--     lag = i, -->
+<!--     pval = p.adjust(as.numeric(subpVal), method = "BH") -->
+<!--   ) -->
+<!--   betaWtFunc =  rbind(betaWtFunc,betaWt) -->
+
+<!-- } -->
+
+<!-- betaWtFunc$sub = subName[betaWtFunc$sub] -->
+<!-- dat_ave = aggregate( data_y ~ lag, data = betaWtFunc, FUN = "mean") -->
+<!-- dat_ave$sub = 'average' -->
+<!-- dat_ave$pval = p.adjust(pVal, method = "BH") -->
+
+<!-- betaWtFunc = rbind(betaWtFunc,dat_ave) -->
+
+<!-- sigBarLoc = 0 -->
+<!-- betaWtFunc['flag'] = rep('white',dim(betaWtFunc)[1]) -->
+<!-- ind = betaWtFunc['pval'] < 0.1 & betaWtFunc['pval'] > 0.05 -->
+<!-- # betaWtFunc['data_y'][ind] = sigBarLoc -->
+<!-- betaWtFunc['flag'][ind] = 'gray' -->
+<!-- ind = betaWtFunc['pval'] < 0.05 -->
+<!-- # betaWtFunc['data_y'][ind] = sigBarLoc -->
+<!-- betaWtFunc['flag'][ind] = 'black' -->
+
+<!-- betaWtFunc$data_x = betaWtFunc$lag -->
+
+<!-- config = list(lim_x = c(min(betaWtFunc$data_x),max(betaWtFunc$data_x)), -->
+<!--               lim_y = c(-0.05,0.14), -->
+<!--               # lim_y = c(-7.5, 1), -->
+<!--               alpha = 0.4, -->
+<!--               stride = 0.1, -->
+<!--               label_x = "Trial since current answer", -->
+<!--               label_y = "Beta weight", -->
+<!--               title = "", -->
+<!--               errorWid = 0.3 -->
+<!--               # grCol = c( "gray","#FFFFFF"), -->
+<!--               # gr_outline =c("black","black") -->
+<!-- ) -->
+<!-- betaWtFunc$numOfSwitch = 0 -->
+
+<!-- betaWtFunc_sig = betaWtFunc[betaWtFunc$sub == 'average',] -->
+<!-- betaWtFunc_sig$data_y = -0.1 -->
+<!-- p <- dispBarGraph(betaWtFunc,config,c("data_x"))+ -->
+<!--   geom_point(data=betaWtFunc_sig, aes(x=lag, y = data_y),color= betaWtFunc_sig$flag, size = 2,shape=15) -->
+
+<!-- config$ylim = round(seq(0,0.15,0.05),4) -->
+<!-- config$ylim_stride = 0.02 -->
+<!-- config$xlim = round(seq(-20,20,5),2) -->
+<!-- config$xlim_stride = 1 -->
+
+<!-- p = setEmptyStyle(p,config) -->
+
+<!-- eval(parse(text=paste("p", countFigNum ,"=p", sep=""))) -->
+<!-- countFigNum = countFigNum+1 -->
+
+<!-- #### Figure3E(ROC) ######## -->
+<!-- data=fromJSON(file="./data/roc_past2.json") -->
+
+<!-- ggName = c('Baseline','Transient') -->
+<!-- ggName2 = c('e1','e2') -->
+<!-- dat <- list((matrix(unlist(data$FalsePos),nrow=length(data$FalsePos),byrow=T)), -->
+<!--             (matrix(unlist(data$TruePos),nrow=length(data$TruePos),byrow=T))) -->
+
+<!-- names(dat) <- c('FalsePos','TruePos') -->
+
+<!-- numOfSub = length(unique(data$sub)) -->
+<!-- numOfTrial = dim(dat$FalsePos)[1] -->
+<!-- lengthOfTime = dim(dat$FalsePos)[2] -->
+<!-- timeLen = c(0,1) -->
+
+<!-- ind_data_ROC = data.frame( -->
+<!--   sub =  rep( data$sub, times = rep( lengthOfTime, numOfTrial)), -->
+<!--   data_y = t(matrix(t(dat$TruePos),nrow=1)), -->
+<!--   data_x = t(matrix(t(dat$FalsePos),nrow=1)), -->
+<!--   lag = rep( as.character(data$lag), times = rep( lengthOfTime, numOfTrial)), -->
+<!--   condition = rep( ggName[unlist(data$type)+1], times = rep( lengthOfTime, numOfTrial)), -->
+<!--   exp = rep( ggName2[unlist(data$exp)], times = rep( lengthOfTime, numOfTrial)) -->
+<!-- ) -->
+<!-- ind_data_ROC$lag <- factor(ind_data_ROC$lag,levels =c("-20","-15","-10","-5","0","5","10","15","20")) -->
+<!-- ind_data_ROC = ind_data_ROC[ind_data_ROC$exp == 'e1' & ind_data_ROC$condition == 'Baseline' ,] -->
+<!-- ind_data_ROC = aggregate( . ~ lag, data = ind_data_ROC, FUN = "mean") -->
+
+<!-- p = ggplot(ind_data_ROC,aes(x=data_y,y = data_x,group = interaction(sub,lag),color=lag))+ -->
+<!--   geom_line()+ -->
+<!--   annotate(x=0, xend=1, y=0, yend=1, colour="black", lwd=0.5, geom="segment")+ -->
+<!--   facet_wrap(sub ~ .) -->
+
+
+<!-- ind_data = data.frame( -->
+<!--   sub = unlist(data$sub), -->
+<!--   data_y =unlist( data$AUC), -->
+<!--   lag = unlist(data$lag), -->
+<!--   condition = ggName[unlist(data$type)+1], -->
+<!--   exp = ggName2[unlist(data$exp)] -->
+<!-- ) -->
+
+<!-- dat_p = data.frame() -->
+<!-- for(iExp in 1:2){ -->
+
+<!--   for (iCondition in 1:2){ -->
+<!--     pVal = NULL -->
+<!--     for(iLag in unique(ind_data$lag)){ -->
+<!--       tmp = ind_data[ind_data$lag == iLag & -->
+<!--                        ind_data$exp == ggName2[iExp] & -->
+<!--                        ind_data$condition == ggName[iCondition],] -->
+<!--       d = t.test(tmp$data_y,mu=0.5, alternative="greater") -->
+<!--       pVal = rbind(pVal,round(d[["p.value"]], digits = 4)) -->
+<!--     } -->
+<!--     tmp_dat_p = data.frame( -->
+<!--       pVal = p.adjust(pVal, method = "BH"), -->
+<!--       data_y = 0, -->
+<!--       data_x = unique(ind_data$lag), -->
+<!--       condition = ggName[iCondition], -->
+<!--       exp = ggName2[iExp] -->
+<!--     ) -->
+<!--     dat_p = rbind(dat_p,tmp_dat_p) -->
+<!--   } -->
+<!-- } -->
+<!-- config = list(lim_x = c(min(ind_data$lag),max(ind_data$lag)), -->
+<!--               lim_y = c(0.4, 0.6), -->
+<!--               sigBarLoc = 0.57, -->
+<!--               alpha = 0.4, -->
+<!--               stride = 0.1, -->
+<!--               label_x = "", -->
+<!--               label_y = "AUC", -->
+<!--               title = "Tertile", -->
+<!--               errorWid = 0.6 -->
+<!-- ) -->
+<!-- dat_p['flag'] = rep('gray',dim(dat_p)[1]) -->
+<!-- ind = dat_p['pVal'] < 0.1 & dat_p['pVal'] > 0.05 & dat_p$condition == 'Baseline' -->
+<!-- dat_p['data_y'][ind] = 0.58 -->
+<!-- dat_p['flag'][ind] = 'gray' -->
+
+<!-- ind = dat_p['pVal'] < 0.1 & dat_p['pVal'] > 0.05 & dat_p$condition == 'Transient' -->
+<!-- dat_p['data_y'][ind] = 0.44 -->
+<!-- dat_p['flag'][ind] = 'gray' -->
+
+<!-- ind = dat_p['pVal'] < 0.05 & dat_p$condition == 'Baseline' -->
+<!-- dat_p['data_y'][ind] = 0.58 -->
+<!-- dat_p['flag'][ind] = 'black' -->
+
+<!-- ind = dat_p['pVal'] < 0.05 & dat_p$condition == 'Transient' -->
+<!-- dat_p['data_y'][ind] = 0.44 -->
+<!-- dat_p['flag'][ind] = 'black' -->
+
+<!-- ind_data_anova = ind_data[ind_data$exp == 'e1',] -->
+<!-- ind_data_anova$exp = NULL -->
+<!-- ind_data_anova = ind_data_anova[,c(1,3,4,2)] -->
+<!-- anovakun(ind_data_anova,"sAB",long=T, peta=T) -->
+
+<!-- p = dispLineGraph(ind_data_anova,config,c("lag","condition"))+ -->
+<!--   # scale_color_viridis_c(option = "B")+ -->
+<!--   geom_point(data=dat_p, aes(x=data_x, y = data_y),color=dat_p$flag, size = 2,shape=15)+ -->
+<!--   facet_grid(condition ~ .) -->
+
+<!-- config$ylim = round(seq(0.4,0.6,0.05),2) -->
+<!-- config$ylim_stride = 0.02 -->
+<!-- config$xlim = round(seq(-20,20,5),2) -->
+<!-- config$xlim_stride = 1 -->
+
+<!-- p = setEmptyStyle(p,config) -->
+
+<!-- eval(parse(text=paste("p", countFigNum ,"=p", sep=""))) -->
+<!-- countFigNum = countFigNum+1 -->
+
+<!-- #### plot #### -->
+<!-- # layout = rbind(c(1,2,3),c(4,4,5)) -->
+<!-- # p = combineGraphs(seq(1,countFigNum-1),'p',layout) -->
+<!-- # width_fig=10 -->
+<!-- # height_fig=10 -->
+<!-- # ggsave(file = "./figure/fig3.pdf", -->
+<!-- #        plot = p, dpi = 500, -->
+<!-- #        width = width_fig, height = height_fig, -->
+<!-- #        family="Times") -->
+
+<!-- # width_fig=6 -->
+<!-- # height_fig=5 -->
+<!-- # CairoFonts(regular = "Times","Times") -->
+<!-- # CairoPDF(file="./figure/Figure3A", -->
+<!-- #          width=width_fig, height=height_fig) -->
+<!-- # print(p1) -->
+<!-- # dev.off() -->
+<!-- #  -->
+<!-- # width_fig=1.5 -->
+<!-- # height_fig=6 -->
+<!-- # CairoFonts(regular = "Times","Times") -->
+<!-- # CairoPDF(file="./figure/Figure3B", -->
+<!-- #          width=width_fig, height=height_fig) -->
+<!-- # print(p3) -->
+<!-- # dev.off() -->
+<!-- #  -->
+<!-- # width_fig=3 -->
+<!-- # height_fig=6 -->
+<!-- # CairoFonts(regular = "Times","Times") -->
+<!-- # CairoPDF(file="./figure/Figure3C", -->
+<!-- #          width=width_fig, height=height_fig) -->
+<!-- # print(p2) -->
+<!-- # dev.off() -->
+<!-- #  -->
+<!-- # width_fig=6 -->
+<!-- # height_fig=8 -->
+<!-- # CairoFonts(regular = "Times","Times") -->
+<!-- # CairoPDF(file="./figure/Figure3D", -->
+<!-- #          width=width_fig, height=height_fig) -->
+<!-- # print(p4) -->
+<!-- # dev.off() -->
+<!-- #  -->
+<!-- # CairoFonts(regular = "Times","Times") -->
+<!-- # CairoPDF(file="./figure/Figure3E", -->
+<!-- #          width=width_fig, height=height_fig) -->
+<!-- # print(p5) -->
+<!-- # dev.off() -->
+<!-- ``` -->

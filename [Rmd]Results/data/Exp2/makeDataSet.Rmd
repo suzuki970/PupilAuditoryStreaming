@@ -1,7 +1,7 @@
 ---
 title: "makeDataSet"
 author: "Yuta Suzuki"
-date: "6/10/2021"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
 ---
 
@@ -27,7 +27,7 @@ eTime = 5
 
 analysisWin = 0
 countFigNum=1
-mmFlg = FALSE
+mmFlg = TRUE
 auFlg = FALSE
 
 saveLoc = "../../../[Python]PreProcessing/Exp2/data/"

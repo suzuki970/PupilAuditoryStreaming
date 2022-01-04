@@ -11,7 +11,7 @@ datHash={"PDR":[],
          "PDR_baseline":[],
          "gazeX":[],
          "gazeY":[],
-         'mSaccade':[],
+         # 'mSaccade':[],
          "sub":[],
          "numOfSwitch":[],
          "RT":[],
@@ -32,8 +32,11 @@ cfg={'THRES_DIFF':10,
      'WID_FILTER':[],
      'mmFlag':False,
      'normFlag':True,
+     # 'mmFlag':True,
+     # 'normFlag':False,
      's_trg':[],
-     'visualization':False
+     'visualization':False,
+     'MS':False
      }
 
 
@@ -53,7 +56,7 @@ for iSub,subName in enumerate(folderName):
     pupilData = eyeData['pupilData']
     gazeX = eyeData['gazeX']
     gazeY = eyeData['gazeY']
-    mSaccade = eyeData['mSaccade']
+    # mSaccade = eyeData['MS']
     datHash['rejectFlag'].append(eyeData['rejectFlag'])
     
     start_trial = [[int(int(e[0])- initialTimeVal),e[1]] for e in events['MSG'] if e[1] == 'Start_Pesentation']
@@ -137,18 +140,18 @@ for iSub,subName in enumerate(folderName):
         tmp = pupilData[(r[0]-int(sTime*fs)):(r[0]+int(eTime*fs))]
         tmp_gazeX = gazeX[(r[0]-int(sTime*fs)):(r[0]+int(eTime*fs))]
         tmp_gazeY = gazeY[(r[0]-int(sTime*fs)):(r[0]+int(eTime*fs))]
-        tmp_mSaccade = mSaccade[(r[0]-int(sTime*fs)):(r[0]+int(eTime*fs))]
+        # tmp_mSaccade = mSaccade[(r[0]-int(sTime*fs)):(r[0]+int(eTime*fs))]
         
         if len(tmp) == int((sTime+eTime)*fs):
             datHash['PDR_baseline'].append(tmp)
             datHash['gazeX'].append(tmp_gazeX)
             datHash['gazeY'].append(tmp_gazeY)
-            datHash['mSaccade'].append(tmp_mSaccade)
+            # datHash['mSaccade'].append(tmp_mSaccade)
         else:
             datHash['PDR_baseline'].append(np.zeros(int((sTime+eTime)*fs)))
             datHash['gazeX'].append(np.zeros(int((sTime+eTime)*fs)))
             datHash['gazeY'].append(np.zeros(int((sTime+eTime)*fs)))
-            datHash['mSaccade'].append(np.zeros(int((sTime+eTime)*fs)))
+            # datHash['mSaccade'].append(np.zeros(int((sTime+eTime)*fs)))
                
     for que,res in zip(events_queue,events_response):
         datHash['RT'].append((res[0]-que[0])/fs)
@@ -171,7 +174,6 @@ for iSub,subName in enumerate(folderName):
 datHash['PDR'] = np.array(datHash['PDR']).tolist()
 datHash['gazeX'] = np.array(datHash['gazeX']).tolist()
 datHash['gazeY'] = np.array(datHash['gazeY']).tolist()
-datHash['mSaccade'] = np.array(datHash['mSaccade']).tolist()
 
 datHash['PDR_baseline'] = np.array(datHash['PDR_baseline']).tolist()
 

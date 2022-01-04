@@ -36,8 +36,10 @@ cfg={
 'METHOD':1, #subtraction
 'FLAG_LOWPASS':False,
 'THRES_DIFF':0.04,
-'mmFlag':False,
-'normFlag':True
+'mmFlag':True,
+'normFlag':False,
+# 'mmFlag':False,
+# 'normFlag':True
 # 'THRES_DIFF':0.3 
 }
 
@@ -131,107 +133,6 @@ for i,(bk,sc) in enumerate(zip(dat['Blink'],dat['Saccade'])):
 dat['numOfBlink'] = [len(e) for e in d_bk]   
 dat['ampOfSaccade'] = [np.mean(e) if len(e)>0 else 0 for e in d_sc]   
 dat['numOfSaccade'] = [len(e) for e in d_sc]   
-
-#%% ################# microsaccade ##########################
-# gazeX = dat['gazeX'].copy()
-# mSaccade = dat['mSaccade'].copy()
-
-# tmp_data={'all':[],'positive':[],'negative':[]}
-# rejectSaccade = {'all':[],'positive':[],'negative':[]}
-# showMS={'all':[],'positive':[],'negative':[]}
-# for i,ms in enumerate(mSaccade):
-#     # ms_base = ms[0:int(ind_baseline[i])]
-#     ms_base = ms
-#     tmp = {'all':[],'positive':[],'negative':[]}
-#     for i_ms,ms_data in enumerate(ms_base):
-#         if ms_data != 0:
-#             if len(gazeX[i][i_ms-50:i_ms+50]) == 100:
-#                 tmp['all'].append(gazeX[i][i_ms-50:i_ms+50])
-#                 # if ms_data > 0:
-#                 #     tmp['positive'].append(gazeX[i][i_ms-50:i_ms+50])
-#                 # else:
-#                 #     tmp['negative'].append(gazeX[i][i_ms-50:i_ms+50])
-                
-#     for posneg in ['all']:
-#     # for posneg in ['positive','negative']:
-#         tmp_rejectNum=[]
-#         tmp2 = np.array(tmp[posneg])
-  
-#         for iTrial in np.arange(tmp2.shape[0]):
-#             if len(np.argwhere(abs(np.diff(tmp2[iTrial,:]))>5)) > 0:
-#                 tmp_rejectNum.append(iTrial)
-        
-#         rejectSaccade[posneg].append(tmp_rejectNum)
-#         showMS[posneg].append(np.delete(tmp2,tmp_rejectNum,axis=0))  
-#         tmp_data[posneg].append(tmp[posneg])
-
-# upsilon = []
-# # plt.figure()
-# for iSub in np.unique(dat['sub']):
-#     ind = np.argwhere(np.array(dat['sub']) == iSub).reshape(-1)
-#     showMS2 = [ms for i,ms in enumerate(showMS['all']) if i in ind ]
-#     showMS2 = np.array(list(itertools.chain.from_iterable(showMS2)))
-    
-#     # plt.subplot(5,5,iSub);plt.plot(showMS2.T)
-#     # plt.subplot(1,3,2);plt.plot(np.diff(showMS2).T)
-#     v = np.zeros((showMS2.shape[0],showMS2.shape[1]))        
-#     for iTrial in np.arange(showMS2.shape[0]):
-#         for i in np.arange(2,len(showMS2[iTrial,:])-2):
-#             v[iTrial,i] = (showMS2[iTrial,i+2]+showMS2[iTrial,i+1]-showMS2[iTrial,i-2]-showMS2[iTrial,i-1])
-    
-#     # tmp_v = v.reshape(-1)
-#     # plt.hist(tmp_v,bins=100)
-#     sigma_m = np.nanstd(v)
-#     ramda = 1
-#     upsilon.append(ramda*sigma_m)
-    
-# rejectSaccade['vel']=[]
-# t=[]
-# for i,ms in enumerate(tmp_data['all']):
-#     tmp_upsilon = upsilon[int(dat['sub'][i]-1)]
-#     tmp_reject=[]
-#     if len(ms) > 0:
-#         for iTrial in np.arange(len(ms)):
-#             d = np.array(ms[iTrial])
-#             v = np.zeros(d.shape[0])    
-#             for i in np.arange(2,len(d)-2):
-#                 v[i] = (d[i+2]+d[i+1]-d[i-2]-d[i-1])
-#             t.append(max(abs(v)))   
-#             if max(abs(v)) < tmp_upsilon:               
-#                   tmp_reject.append(iTrial)
-#     rejectSaccade['vel'].append(tmp_reject)
-  
-# d_ms=[]
-# for i,(ms,r1,r2) in enumerate(zip(mSaccade,rejectSaccade['all'],rejectSaccade['vel'])):
-#     # ms_base = ms[0:int(ind_baseline[i])]
-#     ms_base = ms
-#     d = []
-#     for i_ms,ms_data in enumerate(ms_base):
-#         if ms_data != 0:
-#             if len(gazeX[i][i_ms-50:i_ms+50]) == 100:
-#                 d.append(pixel2angle(0.282,ms_data*1000,70))
-#                 # d.append(ms_data)
-#     r = r1.copy()
-#     r.extend(r2)
-#     r = np.unique(r)
-#     if len(r)>0:
-#         d_ms.append(np.delete(d,r))
-#     else:
-#         d_ms.append(np.array(d))
-    
-#     tmp_data['all'][i] = [d for ii,d in enumerate(tmp_data['all'][i]) if not ii in r]
-
-# # plt.figure()
-# # for iSub in np.unique(dat['sub']):
-# #     ind = np.argwhere(np.array(dat['sub']) == iSub).reshape(-1)
-# #     showMS2 = [ms for i,ms in enumerate(tmp_data['all']) if i in ind ]
-# #     showMS2 = np.array(list(itertools.chain.from_iterable(showMS2)))
-
-# #     plt.subplot(5,5,iSub);plt.plot(np.diff(showMS2).T)
-
-# dat['numOfmSaccade'] = [len(e) for e in d_ms]
-# dat['ampOfmSaccade'] = [np.mean(e) if len(e) > 0 else 0 for e in d_ms]
-
 
 del dat["gazeX"], dat["gazeY"],dat['Blink'],dat['Saccade']
 mmName = list(dat.keys())
@@ -336,9 +237,9 @@ df['PDR'] = dat['PDR_size']
 df['responses'] = dat['responses']
 df['taskTimeLen'] = dat['taskTimeLen']
 
-
-path = os.path.join(saveFileLocs + "numOfSwitch_jitter.json")
-df.to_json(path)
+if not cfg['mmFlag'] and cfg['normFlag']:
+    path = os.path.join(saveFileLocs + "numOfSwitch_jitter.json")
+    df.to_json(path)
 
 
 df = df.groupby(['sub', 'responses']).mean()

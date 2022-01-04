@@ -6,11 +6,7 @@ Created on Mon Mar  1 10:06:35 2021
 @author: yutasuzuki
 """
 
-import sys
 import os
-
-sys.path.append('../../../../../../GoogleDrive/PupilAnalysisToolbox/python/preprocessing/lib')
-
 import numpy as np
 import json
 from asc2array import asc2array
@@ -49,10 +45,11 @@ cfg={'THRES_DIFF':10,
      'WID_ANALYSIS':4,
      'useEye':2,
      'WID_FILTER':[],
-     'mmFlag':True,
-     'normFlag':False,
+     'mmFlag':False,
+     'normFlag':True,
      's_trg':[],
-     'visualization':False
+     'visualization':False,
+     'MS':False
      }
 
 
@@ -72,7 +69,7 @@ for iSub,subName in enumerate(folderName):
     pupilData = eyeData['pupilData']
     gazeX = eyeData['gazeX']
     gazeY = eyeData['gazeY']
-    mSaccade = eyeData['mSaccade']
+    mSaccade = eyeData['MS']
     datHash['rejectFlag'].append(eyeData['rejectFlag'])
     
     start_trial = [[int(int(e[0])- initialTimeVal),e[1]] for e in events['MSG'] if e[1] == 'Start_Pesentation']

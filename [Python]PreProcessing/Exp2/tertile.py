@@ -41,16 +41,18 @@ cfg={
 'THRES_DIFF':0.04,
 'mmFlag':False,
 'normFlag':True
-# 'THRES_DIFF':0.3 
 }
 
 saveFileLocs = 'data/'
 
+# use aubitorary unit (pixel)
 if not cfg['mmFlag'] and not cfg['normFlag']:
     f = open(os.path.join(str(saveFileLocs + 'data_original_au.json')))    
     cfg['THRES_DIFF'] = 20
+# milimeters
 elif cfg['mmFlag'] and not cfg['normFlag']:
     f = open(os.path.join(str(saveFileLocs + 'data_original_mm.json')))
+# normalized by z-score
 else:
     f = open(os.path.join(str(saveFileLocs + 'data_original_norm.json')))
 
@@ -143,7 +145,7 @@ for mm in mmName:
     if not isinstance(theta_hat[mm],list):
         theta_hat[mm] = theta_hat[mm].tolist()
        
-del dat["Blink"], dat["responses"], dat["Saccade"], dat["mSaccade"]
+del dat["Blink"], dat["responses"], dat["Saccade"]
 del dat["gazeX"], dat["gazeY"]
 del dat['PDR'],dat['RT']
 del dat['PDR_baseline']

@@ -42,6 +42,8 @@ cfg={
 'METHOD':1, #subtraction
 'FLAG_LOWPASS':False,
 'THRES_DIFF':0.04,
+# 'mmFlag':True,
+# 'normFlag':False,
 'mmFlag':False,
 'normFlag':True
 }
@@ -150,190 +152,18 @@ tmp_base = np.delete(tmp_base,rejectOutlier,axis=0)
 # dat['ampOfSaccade'] = [np.mean(e) if len(e)>0 else 0 for e in d_sc]   
 # dat['numOfSaccade'] = [len(e) for e in d_sc]   
 
-#%% ################# microsaccade ##########################
-# gazeX = np.array(dat['gazeX'].copy())
-# gazeY = np.array(dat['gazeY'].copy())
-# gazeY[gazeY<0]=0
-
-# for iTrial in np.arange(len(gazeX)):
-#     ind = np.argwhere(abs(np.diff(gazeX[iTrial,:])) > 50)
-#     gazeX[iTrial,ind] = 0  
-    
-#     ind = np.argwhere(abs(np.diff(gazeY[iTrial,:])) > 50)
-#     gazeY[iTrial,ind] = 0  
-
-# fs = 250
-# gazeX = zeroInterp(gazeX.copy(),fs,10)
-# gazeX = gazeX['pupilData']
-
-# # gazeY = zeroInterp(gazeY.copy(),fs,10)
-# # gazeY = gazeY['pupilData']
-
-# gazeX = gazeX[:,4000:]
-# gazeY = gazeY[:,4000:]
-
-# gazeX = re_sampling(gazeX,int(gazeX.shape[1]/4)).tolist()
-# gazeY = re_sampling(gazeY,int(gazeY.shape[1]/4)).tolist()
-
-# events = {'MSpos':[],'MSneg':[]}
-    
-# test_x_pos=[]
-# test_x_neg=[]
-
-# for tx,ty in zip(gazeX,gazeY):
-
-#     vx = np.zeros(len(tx))
-#     vy = np.zeros(len(ty))
-#     for i in np.arange(2,len(tx)-2):
-#         if tx[i+2]*tx[i+1]*tx[i-2]*tx[i-1] == 0:
-#             vx[i] = np.nan
-#         else:
-#             vx[i] = (tx[i+2]+tx[i+1]-tx[i-2]-tx[i-1]) / (6*(1/fs))
-            
-#         # vx[i] = (tx[i+2]+tx[i+1]-tx[i-2]-tx[i-1]) / (6*(1/fs))
-#         # vy[i] = (ty[i+2]+ty[i+1]-ty[i-2]-ty[i-1]) / (6*(1/fs))
-    
-#     sigma_x = (np.median(vx**2)-np.median(vx)**2) / 3
-#     # sigma_y = (np.median(vy**2)-np.median(vy)**2)
-    
-#     # a = (sigma_x/2)**2
-#     # b = (sigma_y/2)**2
-    
-#     # x = vx**2
-#     # y = vy**2
-    
-#     # P = (x/a)+(y/b)-1
-     
-#     # ind = np.argwhere(P > 0).reshape(-1).tolist()
-    
-#     ind_pos = np.argwhere(vx > sigma_x).reshape(-1).tolist()
-#     ind_neg = np.argwhere(-vx > sigma_x).reshape(-1).tolist()
-     
-#     cFlag = False
-#     tmp = []
-#     for iNum in np.arange(len(ind_pos)-1):
-#         if not cFlag:
-#             sTime = ind_pos[iNum]
-          
-#         if ind_pos[iNum]+3 > ind_pos[iNum+1]:
-#             cFlag = True
-#         else:
-#             eTime = ind_pos[iNum]
-
-#             x = np.array(tx[sTime-50:sTime+50])
-#             # x = x - np.median(x)
-            
-#             if len(x) > 0:
-#                 # x = max(x)-min(x)
-            
-#                 # y = np.array(ty[sTime-50:sTime+50])
-#                 # y = max(y)-min(y)
-                
-#                 # if not len(np.argwhere(np.array(tx[sTime-50:sTime+50]) == 0)) > 0:
-#                 #     if not len(np.argwhere(np.array(ty[sTime-50:sTime+50]) > 700)) > 0:
-#                 # test_x_pos.append(tx[sTime-50:eTime+50])
-#                 # test_y.append(ty[sTime-50:eTime+50])
-#                 # tmp.append([sTime,eTime,x,y,math.atan2(y,x)*(180/np.pi),np.sqrt(x**2+y**2)])
-#                 amp = (tx[sTime+2]+tx[sTime+1]-tx[sTime-2]-tx[sTime-1])
-#                 tmp.append([sTime,eTime,tx[sTime-50:eTime+50],amp])
-                    
-#             cFlag = False
-            
-#     events['MSpos'].append(tmp)
- 
-#     cFlag = False
-#     tmp = []
-
-#     for iNum in np.arange(len(ind_neg)-1):
-#         if not cFlag:
-#             sTime = ind_neg[iNum]
-          
-#         if ind_neg[iNum]+3 > ind_neg[iNum+1]:
-#             cFlag = True
-#         else:
-#             eTime = ind_neg[iNum]
-
-#             x = np.array(tx[sTime-50:sTime+50])
-#             # x = x - np.median(x)
-            
-#             if len(x) > 0:
-#                 # x = max(x)-min(x)
-            
-#                 # y = np.array(ty[sTime-50:sTime+50])
-#                 # y = max(y)-min(y)
-                
-#                 # if not len(np.argwhere(np.array(tx[sTime-50:sTime+50]) == 0)) > 0:
-#                 #     if not len(np.argwhere(np.array(ty[sTime-50:sTime+50]) > 700)) > 0:
-#                 # test_x_neg.append()
-#                 # test_y.append(ty[sTime-50:eTime+50])
-#                 # tmp.append([sTime,eTime,x,y,math.atan2(y,x)*(180/np.pi),np.sqrt(x**2+y**2)])
-#                 amp = (tx[sTime+2]+tx[sTime+1]-tx[sTime-2]-tx[sTime-1])
-#                 tmp.append([sTime,eTime,tx[sTime-50:sTime+50],amp])
-                    
-#             cFlag = False
-            
-#     events['MSneg'].append(tmp) 
-
-
-# for iTrial,(pos,neg) in enumerate(zip(events['MSpos'],events['MSneg'])):
-    
-#     rejectNum = []
-#     for iNumOfMs,p in enumerate(pos):
-#         if len(np.argwhere(abs(np.diff(p[2])) > 10)) > 0:
-#             rejectNum.append(iNumOfMs)
-            
-#         if len(np.argwhere(np.array(p[2]) > 900)) > 0:
-#             rejectNum.append(iNumOfMs)
-        
-#         if len(np.argwhere(np.array(p[2]) < 700)) > 0:
-#             rejectNum.append(iNumOfMs)
-
-#     if len(rejectNum) > 0:
-#         # print(rejectNum)
-#         events['MSpos'][iTrial] = [d for i,d in enumerate(pos) if not i in rejectNum]
-
-#     rejectNum = []
-#     for iNumOfMs,p in enumerate(neg):
-#         if len(np.argwhere(abs(np.diff(p[2])) > 10)) > 0:
-#             rejectNum.append(iNumOfMs)
-        
-#         if len(np.argwhere(np.array(p[2]) > 900)) > 0:
-#             rejectNum.append(iNumOfMs)
-        
-#         if len(np.argwhere(np.array(p[2]) < 700)) > 0:
-#             rejectNum.append(iNumOfMs)
-#     if len(rejectNum) > 0:
-#         # print(1)
-#         events['MSneg'][iTrial] = [d for i,d in enumerate(neg) if not i in rejectNum]
-
-        
-# dat['numOfmSaccade'] = [len(e) for e in events['MSpos']]
-# dat['ampOfmSaccade'] = []
-# for pos in events['MSpos']:
-#     numOfms = []
-#     if len(pos)>0:
-#         for p in pos:
-#             numOfms.append(p[3])
-#     else:
-#         numOfms.append(0)
-     
-#     dat['ampOfmSaccade'].append(np.mean(numOfms))
-
-del dat["gazeX"], dat["gazeY"],dat['Blink'],dat['Saccade']
-mmName = list(dat.keys())
-
 #%% ################# NAN reject ##########################
-rejectNAN=[]
-for mm in mmName:
-    ind = np.argwhere(np.isnan(np.array(dat[mm])) == True)
-    if len(ind)>0:
-        rejectNAN.append(ind)        
-rejectNAN = list(itertools.chain.from_iterable(rejectNAN))
-rejectNAN = np.unique(rejectNAN)
-rejectNAN = np.array(rejectNAN, dtype='int')
-y = np.delete(y,rejectNAN,axis=0)  
-for mm in mmName:
-    dat[mm] = [d for i,d in enumerate(dat[mm]) if not i in rejectNAN]
+# rejectNAN=[]
+# for mm in ["gazeX","gazeY","PDR"]:
+#     ind = np.argwhere(np.isnan(np.array(dat[mm])) == True)
+#     if len(ind)>0:
+#         rejectNAN.append(ind)        
+# rejectNAN = list(itertools.chain.from_iterable(rejectNAN))
+# rejectNAN = np.unique(rejectNAN)
+# rejectNAN = np.array(rejectNAN, dtype='int')
+# y = np.delete(y,rejectNAN,axis=0)  
+# for mm in mmName:
+#     dat[mm] = [d for i,d in enumerate(dat[mm]) if not i in rejectNAN]
 
 #%% ################# reject subject (N < 40%) ##########################
 
@@ -351,8 +181,6 @@ for iSub in np.arange(1,int(max(dat['sub']))+1):
     numOftrials.append(len(ind0)+len(ind1)+len(ind2))
     numOftrials_res.append([len(ind0),len(ind1),len(ind2)])
     
-    # if min(numOftrials_res[iSub-1]) ==1:
-    #         reject.append(iSub)
     if (len(ind0)+len(ind1)+len(ind2)) < NUM_TRIAL * 0.4:
             reject.append(iSub)
             
@@ -369,10 +197,11 @@ for mm in mmName:
   
 #%% ################# baseline ##########################
 diam = np.array(dat['PDR'].copy())
+
+# Baseline is defined as 1s before the previous task response
 diam = np.mean(diam[:,-1000:],axis=1).reshape(len(diam),1)
 
 dat['PDR_size'] = [np.mean(p) for p in diam.tolist()]
-
 
 #%% ################# trial number ##########################
 dat['numOfTrial'] = np.zeros(len(dat['PDR']))   
@@ -399,9 +228,9 @@ for iTrial in np.arange(test_y.shape[0]):
     pv = np.gradient(test_y[iTrial,:])
     indices = np.where(np.diff(np.sign(pv)))[0]
     
-    # xv = np.r_[0,np.diff(indices)]
     xv = np.gradient(indices)
     
+    # reject PD/PC event within 300ms ()
     indices = indices[xv > 300] # < 300ms
     
     events['indices'].append(indices.tolist())
@@ -458,6 +287,7 @@ for ev,indices in zip(events['event'],events['indices']):
             # plt.plot(indices,i,'ko',markersize=1,alpha=0.5)
             rateC[i] = 1
             
+    # sumed PC/PD events from que onset to 5s
     tmp = rateD[4000:].sum()
     events['dilation_time'].append(tmp)
     
@@ -528,13 +358,13 @@ for i in range(3):
                  xerr=None, fmt="o", ms=2.0, elinewidth=1.0, ecolor='k', capsize=6.0)
 plt.title('Baseline pupil size')
  
-plt.figure()
-for i in range(3):
-    plt.plot(xLab[i], df.loc[(slice(None),i), 'taskTimeLen'].values.mean(), marker='o', markersize=5, lw=1.0, zorder=10)
-    plt.errorbar(i, df.loc[(slice(None),i), 'taskTimeLen'].values.mean(), 
-                 yerr = df.loc[(slice(None),i), 'taskTimeLen'].values.std()/np.sqrt(numOfSub), 
-                 xerr=None, fmt="o", ms=2.0, elinewidth=1.0, ecolor='k', capsize=6.0)
-plt.title('Task duration')
+# plt.figure()
+# for i in range(3):
+#     plt.plot(xLab[i], df.loc[(slice(None),i), 'taskTimeLen'].values.mean(), marker='o', markersize=5, lw=1.0, zorder=10)
+#     plt.errorbar(i, df.loc[(slice(None),i), 'taskTimeLen'].values.mean(), 
+#                  yerr = df.loc[(slice(None),i), 'taskTimeLen'].values.std()/np.sqrt(numOfSub), 
+#                  xerr=None, fmt="o", ms=2.0, elinewidth=1.0, ecolor='k', capsize=6.0)
+# plt.title('Task duration')
 
 
 #%% ################ Data save ##########################

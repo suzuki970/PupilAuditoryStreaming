@@ -130,7 +130,7 @@ for mm in mmName:
         dat[mm] = dat[mm].tolist()
 
 del dat['PDR']
-del dat["Blink"], dat["Saccade"], dat["mSaccade"]
+del dat["Blink"], dat["Saccade"]
 del dat["gazeX"], dat["gazeY"]
 del dat['RT']
 del dat['PDR_baseline']
