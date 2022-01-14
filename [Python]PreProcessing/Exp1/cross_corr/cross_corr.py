@@ -20,7 +20,8 @@ from scipy.stats import pearsonr,spearmanr,kendalltau
 import scipy.stats as sp
 import random
 import itertools
-   
+import pandas as pd
+
 def split_list(l, n):
     windowL = np.round(np.linspace(0, len(l), n+1))
     windowL = [int(windowL[i]) for i in np.arange(len(windowL))]
@@ -97,12 +98,11 @@ data_cross_corr = {'raw':[],'block':[],
                    'sub':[],'sub_block':[],
                    'randFlag_block':[],'randFlag':[]}
 
-test = []
+
 for iSub in np.arange(1,int(max(datHash['sub']))+1):
     
     ind = np.argwhere(datHash['sub'] == np.int64(iSub))
     y = sp.zscore(np.array(datHash["PDR"][iSub-1]))
-   
     x_p = np.arange(len(y))/1000
     
     x = np.array(datHash["data_x"])[ind].reshape(-1)
@@ -119,7 +119,7 @@ for iSub in np.arange(1,int(max(datHash['sub']))+1):
     sig1 = sp.zscore(np.array(datHash["Response"])[ind]).reshape(-1)
     sig2 = y[x]
     nptsAll = len(sig1)
-    
+     
     ################## cross-corr(block shuffle,whole data) ##########################
     ccov2 = []
     for v in list(itertools.permutations([0,1,2,3],4)): 

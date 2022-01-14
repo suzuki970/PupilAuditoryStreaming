@@ -1,23 +1,23 @@
 ---
-title: "Result notes"
-author: "Yuta Suzuki"
+title: 'Result notes for "Temporal dynamics of auditory bistable perception correlated with a fluctuation of baseline pupil size"'
+author: "Yuta Suzuki, Hsin-I Liao, Shigeto Furukawa"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
-  output: word_document
-  # html_document
-  # :
-  #     reference_docx: results.docx
-  # html_document
-draft: yes
-# 
+  word_document:
+    reference_docx: doc_templete.docx
+  # html_document:
+  #   css: style.css
+# mainfont: Times New Roman
+# draft: yes
 ---
-<style type="text/css">
-body{
-font-size: 14pt;
-line-height: 2;
-width: 100%;
-}
-</style>
+
+
+---
+
+*Corresponding author: Yuta Suzuki
+NTT Communication Science Laboratories, NTT Corporation, Atsugi 243-0198, Japan
+Tel: +81-046-240-3525, 
+E-mail: yuuta.suzuki.fc@hco.ntt.co.jp
 
 
 ```{r setup, include=FALSE}
@@ -55,10 +55,10 @@ data_numOfTrial$sub = factor(data_numOfTrial$sub,levels = unique(data_numOfTrial
 numOfTrial_BF = anovaBF(numOfTrial ~ numOfSwitch + sub, data=data_numOfTrial, whichRandom = "sub",progress=FALSE)
 
 x = data_numOfTrial[data_numOfTrial$numOfSwitch == "2+",]$numOfTrial
-y = data_numOfTrial[data_numOfTrial$numOfSwitch == "0",]$numOfTrial
+y = data_numOfTrial[data_numOfTrial$numOfSwitch == "1",]$numOfTrial
 n = length(x)
-ttest_pair0_2 = t.test(x, y, paired=TRUE)
-bayesF_pair0_2 = ttestBF(x = x, y = y, paired=TRUE)
+ttest_pair1_2 = t.test(x, y, paired=TRUE)
+bayesF_pair1_2 = ttestBF(x = x, y = y, paired=TRUE)
 
 x = data_numOfTrial[data_numOfTrial$numOfSwitch == "1",]$numOfTrial
 y = data_numOfTrial[data_numOfTrial$numOfSwitch == "0",]$numOfTrial
@@ -66,14 +66,23 @@ y = data_numOfTrial[data_numOfTrial$numOfSwitch == "0",]$numOfTrial
 ttest_pair0_1 = t.test(x, y, paired=TRUE)
 bayesF_pair0_1 = ttestBF(x = x, y = y, paired=TRUE)
 
+x = data_numOfTrial[data_numOfTrial$numOfSwitch == "2+",]$numOfTrial
+y = data_numOfTrial[data_numOfTrial$numOfSwitch == "0",]$numOfTrial
+
+ttest_pair0_2 = t.test(x, y, paired=TRUE)
+bayesF_pair0_2 = ttestBF(x = x, y = y, paired=TRUE)
+
 numOfTrial = list(list(
   anovaTab = forDrawingSigANOVA,
   post = forDrawingPost[["A"]][["bontab"]],
   bf = round(exp(numOfTrial_BF@bayesFactor[["bf"]]),3),
-  cohen_pair0_2 = abs(round(ttest_pair0_2[["statistic"]][["t"]] / sqrt(n),3)),
-  bayesF_pair0_2 = round(exp(bayesF_pair0_2@bayesFactor[["bf"]]),3),
+  cohen_pair1_2 = abs(round(ttest_pair1_2[["statistic"]][["t"]] / sqrt(n),3)),
+  bayesF_pair1_2 = round(exp(bayesF_pair1_2@bayesFactor[["bf"]]),3),
   cohen_pair0_1 = abs(round(ttest_pair0_1[["statistic"]][["t"]] / sqrt(n),3)),
-  bayesF_pair0_1 = round(exp(bayesF_pair0_1@bayesFactor[["bf"]]),3)
+  bayesF_pair0_1 = round(exp(bayesF_pair0_1@bayesFactor[["bf"]]),3),
+  cohen_pair0_2 = abs(round(ttest_pair0_2[["statistic"]][["t"]] / sqrt(n),3)),
+  bayesF_pair0_2 = round(exp(bayesF_pair0_2@bayesFactor[["bf"]]),3)
+
 ))
 names(numOfTrial) <- c('numOfTrial')
 anovaTabAll_e1 = c(anovaTabAll_e1,numOfTrial)
@@ -166,6 +175,15 @@ BP_table = list(list(
 names(BP_table) <- c('BP_table')
 
 anovaTabAll_e1 = c(anovaTabAll_e1,BP_table)
+
+numOfSub = length(unique(data_res_tonic$sub))
+f = data.frame(
+  sub = as.character(unique(data_res_tonic$sub)),
+  y = matrix(data_res_tonic$data_y,nrow = numOfSub)
+)
+
+colnames(f) <- c("subject",c('0','1','2+'))
+write.csv(f, "../[JASP]Bayesian/BP_e1.csv",row.names=FALSE)
 
 #### Figure 2B (tertile) -----------------------------------------------------------
 if(mmFlg){
@@ -425,11 +443,19 @@ Participants reported the number of perceptual alternations from 0 to 5. Since t
 `r round(anovaTabAll_e1$numOfTrial$anovaTab[2,]['f.col'],3)`, $p$ = `r round(anovaTabAll_e1$numOfTrial$anovaTab[2,]['p.col'],3)`, 
 $\eta^2_p$ = `r round(anovaTabAll_e1$numOfTrial$anovaTab[2,]['p.eta^2'],3)`, $BF_{10}$ = `r anovaTabAll_e1$numOfTrial$bf`). 
 Post analysis showed that the number of trials for 1-alt cases was significantly larger than for 0- and >1-alt cases 
-($t$(`r anovaTabAll_e1$numOfTrial$post[2,]$df`) = `r round(anovaTabAll_e1$numOfTrial$post[2,]$t,3)`, $p$ = `r round(anovaTabAll_e1$numOfTrial$post[2,]$p.value, 3)`, 
-Cohen’s  $d_z$ = `r anovaTabAll_e1$numOfTrial$cohen_pair0_1`, $BF_{10}$ =  `r anovaTabAll_e1$numOfTrial$bayesF_pair0_1`; 
-$t$(`r anovaTabAll_e1$numOfTrial$post[1,]$df`) = `r round(anovaTabAll_e1$numOfTrial$post[1,]$t,3)`, $p$ = `r round(anovaTabAll_e1$numOfTrial$post[1,]$p.value, 3)`, 
-Cohen’s  $d_z$ = `r anovaTabAll_e1$numOfTrial$cohen_pair0_2`, $BF_{10}$ =  `r anovaTabAll_e1$numOfTrial$bayesF_pair0_2`) 
-at alpha level of 0.05/3 corrected by a Bonferroni-Holm method.
+($t$(`r anovaTabAll_e1$numOfTrial$post[3,]$df`) = `r round(anovaTabAll_e1$numOfTrial$post[3,]$t,3)`, 
+$p$ = `r round(anovaTabAll_e1$numOfTrial$post[3,]$p.value, 3)`, 
+Cohen’s  $d_z$ = `r anovaTabAll_e1$numOfTrial$cohen_pair0_1`, 
+$BF_{10}$ =  `r anovaTabAll_e1$numOfTrial$bayesF_pair0_1`; 
+$t$(`r anovaTabAll_e1$numOfTrial$post[1,]$df`) = `r round(anovaTabAll_e1$numOfTrial$post[1,]$t,3)`, 
+$p$ = `r round(anovaTabAll_e1$numOfTrial$post[1,]$p.value, 3)`, 
+Cohen’s  $d_z$ = `r anovaTabAll_e1$numOfTrial$cohen_pair1_2`, 
+$BF_{10}$ =  `r anovaTabAll_e1$numOfTrial$bayesF_pair1_2`) and that for 0-alt cases was larger than for >1-alt cases 
+($t$(`r anovaTabAll_e1$numOfTrial$post[2,]$df`) = `r round(anovaTabAll_e1$numOfTrial$post[2,]$t,3)`, 
+$p$ = `r round(anovaTabAll_e1$numOfTrial$post[2,]$p.value, 3)`, 
+Cohen’s  $d_z$ = `r anovaTabAll_e1$numOfTrial$cohen_pair0_2`, 
+$BF_{10}$ =  `r anovaTabAll_e1$numOfTrial$bayesF_pair0_2`) 
+at alpha level of 0.05/3 corrected by a Bonferroni-Holm method. 
 RTs of each response category were 
 `r rt_ave[rt_ave$numOfSwitch == 0,]$RT` $\pm$ `r rt_sd[rt_sd$numOfSwitch == 0,]$RT` sec, 
 `r rt_ave[rt_ave$numOfSwitch == 1,]$RT` $\pm$ `r rt_sd[rt_sd$numOfSwitch == 1,]$RT` sec, and 
@@ -690,7 +716,6 @@ The average number of ‘yes’ and ‘no’ trials (presence and absence of per
 ($t$(1,`r anovaTabAll_e2$numOfTrial_table$anovaTab[["parameter"]][["df"]]`) = `r round(anovaTabAll_e2$numOfTrial_table$anovaTab[["statistic"]][["t"]],3)`, $p$ = `r round(anovaTabAll_e2$numOfTrial_table$anovaTab[["p.value"]],3)`, Cohen’s  $d_z$ = `r anovaTabAll_e2$numOfTrial_table$cohend`). 
 Again, there was no statistical differences between 'yes' or 'no' trial and the observation time 
 ($t$(1,`r anovaTabAll_e2$jitter_table$anovaTab[["parameter"]][["df"]]`) = `r round(anovaTabAll_e2$jitter_table$anovaTab[["statistic"]][["t"]],3)`, $p$ = `r round(anovaTabAll_e2$jitter_table$anovaTab[["p.value"]],3)`, Cohen’s  $d_z$ = `r anovaTabAll_e2$jitter_table$cohend`). 
-
 RT in the answer ‘yes’ (`r rt_ave[rt_ave$Responses == 0,]$RT` $\pm$ `r rt_sd[rt_sd$Responses == 0,]$RT` s) was significantly faster than ‘no’ (`r rt_ave[rt_ave$Responses == 0,]$RT` $\pm$ `r rt_sd[rt_sd$Responses == 0,]$RT` s)  
 ($t$(1,`r anovaTabAll_e2$RT_table$anovaTab[["parameter"]][["df"]]`) = `r round(anovaTabAll_e2$RT_table$anovaTab[["statistic"]][["t"]],3)`, $p$ = `r round(anovaTabAll_e2$RT_table$anovaTab[["p.value"]],3)`, Cohen’s  $d_z$ = `r anovaTabAll_e2$RT_table$cohend`). This could be because, the participant in the ‘yes’ trial would have been ready to respond as soon as the first occurrence of a perceptual alternation before the response cue was presented, whereas the participant had to wait until the cue to say ‘no’. It is important to note, therefore, that the perceptual load and/or mental effort is expected to be lower in the ‘yes’ trials than in the ‘no’ ones. In Experiment 1, the participant had to keep counting and memorizing the number of alternations throughout the observation period, possibly leading to increasing perceptual load in the trials with increasing number of alternations. Thus, there was a concern that the association between the pupil size and number of perceptual alternations observed in Experiment 1 reflected such a perceptual load, rather than the processes involved in perceptual switching. The current yes/no paradigm serves as a control test to evaluate the confounding effect of this task-related perceptual load. 
 
@@ -723,13 +748,11 @@ $F$(`r round(event_PC_table[4,]['df.col'],3)`,`r round(event_PC_table[5,]['df.co
 $p$ = `r round(event_PC_table[4,]['p.col'],3)`, $\eta^2_p$ = `r round(event_PC_table[4,]['p.eta^2'],3)`, $BF_{10}$ =  `r  data_anovaPC_BF[2]`; 
 $F$(`r round(event_PC_table[6,]['df.col'],3)`,`r round(event_PC_table[7,]['df.col'],3)`) = `r round(event_PC_table[6,]['f.col'],3)`, 
 $p$ = `r round(event_PC_table[6,]['p.col'],3)`, $\eta^2_p$ = `r round(event_PC_table[6,]['p.eta^2'],3)`, $BF_{10}$ =  `r  round(data_anovaPC_BF[4]/data_anovaPC_BF[3],3)`, respectively).
+There was a concern that the PD events and observed baseline pupil size were not sufficiently independent measures. For example, if the transient pupil dilation had a sufficiently slow time decay, the apparent baseline diameter would build up with accumulated PD events. To address this concern that the baseline pupil size might be affected by the PD events, we calculated the number of PD events in the baseline pupil size analysis in every 1-s time bin (Supplementary Fig. 2) and the correlation between the baseline pupil size and number of transient PD events (Supplementary Fig. 3). Note that the number of PD events during the early 4-s part of the observation period were summed and their order ranked across trials for each subject. The baseline pupil size after the window for calculating the number of PD events was parameterized by the rank order of the PD events. The results revealed that there was no statistical evidence that increasing the number of PD events can explain the baseline pupil size in both experiments.
+
 
 ## Cross-correlation function
-The baseline pupil size up to six trials ahead of the behavioral response and after the response until three trials was positively correlated to the number of perceptual alternations (Fig. 5A). 
-As the intertrial interval was jittered in 5–7 s and the baseline pupil size was inherently defined as 5–7 s before the response in the 0-lag condition, the result indicates that the baseline pupil size predicted perceptual alternation at least 35 s (= 5 s x 6 trials + 5 s) before the behavioral response and that the overall correspondence between pupil size and perceptual alternation was over a sustained time window of 45 s (5 s x 9 trials) at minimum and of 54 s (6 s x 9 trials) at the averaged interval. 
-<!-- Figure 5B shows that the averaged maximum cross-correlation coefficient (found for each subject) in the raw condition was significantly higher than in the shuffled condition ($t$(1, `r numOfsub-1`) = `r round(CCF_max[["statistic"]][["t"]],3)`, $p$ = `r round(CCF_max[["p.value"]], 3)`, Cohen’s  $d_z$ = `r CCF_max_cohen_d`, $BF_{10}$ =  `r round(CCF_max_bayesF, 3)`).  -->
-
-
+The cross-correlation analysis (Fig. 5) revealed that the baseline pupil size and the number of perceptual alternations had a significant positive correlation over the range of nine trials; -6 to +3 trials with a lag of around 0. This result can be interpreted as indicating that the baseline pupil size at least 35 s (= 5 s x 6 trials + 5 s; see below) before the behavioral response predicts perceptual alternation and the overall correspondence between pupil size and the number of perceptual alternations is sustained for at least 45 s (5 s x 9 trials). It should be recalled that for a given trial (or the lag of 0 in Fig. 5), the window for deriving the baseline pupil size preceded the corresponding response by the duration of the observation period (therefore, an additional 5 s was included to derive the 35-s period), and that the observation period was varied randomly between 5 and 9 s (Fig. 1D, red line). Thus, the 35-s and 45-s durations shown above are conservative estimates, with the assumption that the representative observation period was the minimum of the randomization range. 
 
 
 
@@ -748,16 +771,10 @@ As the intertrial interval was jittered in 5–7 s and the baseline pupil size w
 <!-- ($F$(1,`r round(event_PC_table[1,]['df.col'],3)`) = `r round(event_PC_table[2,]['f.col'],3)`, $p$ = `r round(event_PC_table[2,]['p.col'],3)`, $\eta^2_p$ = `r round(event_PC_table[2,]['p.eta^2'],3)`; $F$(1,`r round(event_PC_table[3,]['df.col'],3)`) = `r round(event_PC_table[4,]['f.col'],3)`, $p$ = `r round(event_PC_table[4,]['p.col'],3)`, $\eta^2_p$ = `r round(event_PC_table[4,]['p.eta^2'],3)`; $F$(1,`r round(event_PC_table[5,]['df.col'],3)`) = `r round(event_PC_table[6,]['f.col'],3)`, $p$ = `r round(event_PC_table[6,]['p.col'],3)`, $\eta^2_p$ = `r round(event_PC_table[6,]['p.eta^2'],3)`). -->
 
 ### Statistical analysis
-A one-way repeated-measures analysis of variance (ANOVA) was performed using the baseline pupil size and the number of switches in Experiment 1 and presence vs. absence of perceptual switch in Experiment 2 as within-subject factors. In pairwise comparisons of the main effects, uncorrected p values are reported with the Bonferroni-corrected alpha level.
-Effect sizes were given as partial $\eta^2$; $\eta^2_p$ for ANOVA and as Cohen's $d_z$ for $t$-tests __(Cohen, 1998, p. 48)__. 
-<!-- $Cohen's\:d_z = \frac{\rvert\mu_1 - \mu_2\rvert}{s}$ -->
-<!-- $,s = \sqrt\frac{n_1s_1^2+n_2s_2^2}{n_1+n_2}$ -->
-<!-- For pair-wise comparison, the level of statistical significance was set to $p$ < 0.05 for all analyses. 
--->
-<!-- where $mu$ as the mean difference between their responses in each condition and $P$ as the standard deviation. -->
-To quantify the evidence in the data, we performed Bayesian one-sample t-tests using the BayesFactor package (v0.9.12-4.2) __(Morey, 2019)__ for the R software (Version 3.6.3) __(R Core Team, 2020)__. We reported Bayesian Factor (BF) estimating the relative weight of the evidence in favor of $H_1$ over $H_0$ as $BF_{10}$. Greenhouse–Geisser corrections were performed when the results of Mauchly’s sphericity test were significant.
+Mean baseline pupil size was subjected to a one-way repeated-measures analysis of variance (ANOVA) with the number of alternations as the within-subject factor in Experiment 1. A paired t-tests was applied to the mean baseline pupil size between the presence (alternation) and absence (no- alternation) of perceptual alternations in Experiment 2. The level of statistical significance was set to p < 0.05 for all analyses. Pairwise comparisons of the main effects were corrected through multiple comparisons using the Bonferroni-Holm method. Effect sizes were given as partial $\eta^2$; $\eta^2_p$ for ANOVA and as Cohen’s d_z for t-tests __(Cohen, 1988, p.48; Lakens, 2013)__. Greenhouse–Geisser corrections were performed when the results of Mauchly’s sphericity test were significant. To quantify the evidence in the data, we performed Bayesian paired t-tests with a Cauchy prior width of r = 0.707 for effect size using the BayesFactor package (v0.9.12-4.2) __(Morey, 2019)__ for the R software (Version 3.6.3) __(R Core Team, 2020)__. Bayesian Factor (BF) estimates the relative weight of the evidence in favor of $H_1$ over $H_0$ as $BF_{10}$
 
-In the analysis of pupil response bins, we fitted the following two models to assess  whether the behavioral variability ($Y$) can be explained by a second-order polynomials or monotonic fitting.
+
+For baseline pupil size bin analysis, for each participant, all trials were sorted in ascending order based on the baseline pupil size and divided into five equally populated bins. This procedure led to an equal trial number in each pupil size bin. The number of perceptual alternations (Experiment 1) and the z-scored probability of perceptual alternation (Experiment 2) was averaged and fitted by the following two models to assess whether the behavioral variability (Y) can be explained by a monotonic fitting or second-order polynomials.
 
 
 Model 1 : $Y = \beta_0 + \beta_1P$
@@ -765,7 +782,7 @@ Model 1 : $Y = \beta_0 + \beta_1P$
 Model 2 : $Y = \beta_0 + \beta_1P + \beta_2P^2$
 
 
-where $\beta$ as regression coefficients and $P$ as the baseline pupil response bins. The models were quantified using the Akaike information criterion (AIC), which specifies the evidence of goodness of fit for a model.
+where $\beta$ represents regression coefficients, and $P$ represents the baseline pupil response bins. The models were quantified using the Akaike information criterion (AIC), which specifies the evidence of goodness of fit for a model.
 
 <!-- In Experiment 1, the value of Pearson’s correlation was calculated at a lag between the pupil size and the normalized number of switches using $z$-score in cross-correlation. $p$ values for Pearson’s correlation were corrected by FDR for multiple comparisons using the Benjamini and Hochberg method __(Benjamini and Hochberg, 1995)__. -->
 

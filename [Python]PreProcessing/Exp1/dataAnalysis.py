@@ -43,7 +43,7 @@ cfg={
 'FLAG_LOWPASS':False,
 'THRES_DIFF':0.04,
 # 'mmFlag':True,
-# 'normFlag':False,
+# 'normFlag':False
 'mmFlag':False,
 'normFlag':True
 }
@@ -100,6 +100,14 @@ tmp_rejectNum = np.argwhere(switch == -1).reshape(-1)
 #%% ################# artifact rejection ##########################
 
 y,rejectNum = pre_processing(np.array(dat['PDR_baseline'].copy()),cfg)
+
+if cfg['mmFlag']:
+    f = open(os.path.join(str(saveFileLocs + 'data_original_norm.json')))
+    dat_norm = json.load(f)
+    f.close()
+    y0,rejectNum0 = pre_processing(np.array(dat_norm['PDR_baseline'].copy()),cfg)
+
+    rejectNum = rejectNum0
 
 rejectNum = np.r_[rejectNum,tmp_rejectNum]
 rejectNum = np.unique(rejectNum)
@@ -333,8 +341,9 @@ df['numOfSwitch'][df['numOfSwitch'] > 1] = 2
 
 df['taskTimeLen'] = dat['taskTimeLen']
 
-path = os.path.join(saveFileLocs + "numOfSwitch_jitter.json")
-df.to_json(path)
+if not cfg['mmFlag'] and cfg['normFlag']:
+    path = os.path.join(saveFileLocs + "numOfSwitch_jitter.json")
+    df.to_json(path)
 
 df = df.groupby(['sub', 'numOfSwitch']).mean()
 

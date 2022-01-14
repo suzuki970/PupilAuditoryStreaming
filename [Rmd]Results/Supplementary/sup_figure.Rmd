@@ -1,26 +1,21 @@
 ---
-title: "Supplemental Figures"
-author: "Yuta Suzuki"
+title: 'Supplemental Figures for "Temporal dynamics of auditory bistable perception correlated with a fluctuation of baseline pupil size"'
+author: "Yuta Suzuki, Hsin-I Liao, Shigeto Furukawa"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-output: word_document
-# output: 
+output: 
+  word_document:
+    reference_docx: ../doc_templete.docx
 #   slidy_presentation:
 #     css: ../style.css
      # reference_docx: results.docx
-     # word_document
 ---
 
-Supplemental Figures for "Temporal dynamics of auditory bistable perception correlated with a fluctuation of baseline pupil size"
-
-Yuta Suzuki, Hsin-I Liao, Shigeto Furukawa
-
-NTT Communication Science Laboratories, NTT Corporation, Atsugi 243-0198, Japan
+---
 
 *Corresponding author: Yuta Suzuki
 NTT Communication Science Laboratories, NTT Corporation, Atsugi 243-0198, Japan
 Tel: +81-046-240-3525, 
 E-mail: yuuta.suzuki.fc@hco.ntt.co.jp
-
 
 ## Estimated mm results for Figure 2A and 3A
 ```{r, message=FALSE, echo=FALSE,warning=FALSE,include=FALSE}
@@ -29,7 +24,7 @@ countFigNum = 1
 mmFlg = TRUE
 auFlg = FALSE
 
-figOutput = FALSE
+figOutput = TRUE
 nsFlag = FALSE
 
 anovaTabAll_sup = list()
@@ -55,7 +50,7 @@ config = list(alpha = 0.4,
               grCol = c("#F8766D","#00BA38","#619CFF")
 )
 if(mmFlg){
-  config$label_y = "Baseline Pupil size [mm]"
+  config$label_y = "Baseline Pupil size [millimeters]"
 }else if(auFlg){
   config$label_y = "Baseline Pupil size [a.u.]"
 }else{
@@ -73,8 +68,6 @@ bf = anovaBF(data_y ~ numOfSwitch + sub, data=data_res_tonic, whichRandom = "sub
 x = data_res_tonic[data_res_tonic$numOfSwitch == "2+",]$data_y
 y = data_res_tonic[data_res_tonic$numOfSwitch == "0",]$data_y
 n = length(x)
-# sc = sqrt((n*(var(x))+n*(var(y)))/(n*2))
-# cohen_d0 = round(abs(mean(x)-mean(y))/sc,3)
 ttest_pair0_2 = t.test(x, y, paired=TRUE)
 
 bayesF = ttestBF(x = x, y = y, paired=TRUE)
@@ -82,9 +75,6 @@ bayesF_d0 = round(exp(bayesF@bayesFactor[["bf"]]),3)
 
 x = data_res_tonic[data_res_tonic$numOfSwitch == "2+",]$data_y
 y = data_res_tonic[data_res_tonic$numOfSwitch == "1",]$data_y
-# n = length(x)
-# sc = sqrt((n*(var(x))+n*(var(y)))/(n*2))
-# cohen_d1 = round(abs(mean(x)-mean(y))/sc,3)
 ttest_pair1_2 = t.test(x, y, paired=TRUE)
 
 bayesF = ttestBF(x = x, y = y, paired=TRUE)
@@ -152,7 +142,7 @@ config = list(
   title = ""
 )
 if(mmFlg){
-  config$label_y = "Baseline Pupil size [mm]"
+  config$label_y = "Baseline Pupil size [millimeters]"
 }else if(auFlg){
   config$label_y = "Baseline Pupil size [a.u.]"
 }else{
@@ -453,8 +443,13 @@ p = ggplot(data_anovaPD,aes(x=numOfSwitch, y=data_y, group=interaction(exp,data_
 
 anovakun(data_anovaPD,"sABC",long=T, peta=T,gg=T)
 
+tmp = aggregate( data_y ~ sub*data_x, data = data_anovaPD, FUN = "mean")
+tmp$sub = factor(tmp$sub,levels = unique(tmp$sub))
+bf = anovaBF(data_y ~ data_x + sub, data=tmp, whichRandom = "sub")
+
 PD_table = list(list(
-  anovaTab = forDrawingSigANOVA
+  anovaTab = forDrawingSigANOVA,
+  bf = round(exp(bf@bayesFactor[["bf"]]),3)
 ))
 names(PD_table) <- c('PD_table')
 
@@ -637,7 +632,8 @@ There was a concern that the PD events and observed baseline pupil size were not
 
 The three-way repeated measures ANOVA (the presence of alternation x time bins x experiments), however, only revealed a significant main effect of time bins 
 ($F$(`r round(anovaTabAll_sup$PD_table$anovaTab[4,]['df.col'],2)`,`r round(anovaTabAll_sup$PD_table$anovaTab[5,]['df.col'],2)`) = `r round(anovaTabAll_sup$PD_table$anovaTab[4,]['f.col'],3)`, 
-$p$ = `r round(anovaTabAll_sup$PD_table$anovaTab[4,]['p.col'],3)`, $\eta^2_p$ = `r round(anovaTabAll_sup$PD_table$anovaTab[4,]['p.eta^2'],3)`).
+$p$ = `r round(anovaTabAll_sup$PD_table$anovaTab[4,]['p.col'],3)`, $\eta^2_p$ = `r round(anovaTabAll_sup$PD_table$anovaTab[4,]['p.eta^2'],3)`, 
+$BF_{10}$ = `r anovaTabAll_sup$PD_table$bf`).
 The post-hoc multiple comparisons showed that the number of PD events in time bin of 1 to 2s were larger than −2 to −1s, −1 to 0s, 2 to 3s, 3 to 4s (adj.p < 0.05). This could be explained by motor responses such as button-press responses __(Einhäuser et al., 2010; Grenzebach et al., 2021; Hupé et al., 2009)__. Other main factors and interactions were not significant (p > 0.05).
 
 

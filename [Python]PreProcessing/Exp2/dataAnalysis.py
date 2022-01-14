@@ -36,11 +36,10 @@ cfg={
 'METHOD':1, #subtraction
 'FLAG_LOWPASS':False,
 'THRES_DIFF':0.04,
-'mmFlag':True,
-'normFlag':False,
-# 'mmFlag':False,
-# 'normFlag':True
-# 'THRES_DIFF':0.3 
+# 'mmFlag':True,
+# 'normFlag':False
+'mmFlag':False,
+'normFlag':True
 }
 
 
@@ -56,6 +55,8 @@ else:
 
 dat = json.load(f)
 f.close()
+
+# plt.plot(np.diff(np.array(y)).T)
 
 rejectFlag = dat['rejectFlag']
 
@@ -91,6 +92,15 @@ tmp_rejectNum = np.argwhere(switch == -1).reshape(-1)
 
 #%% ################ artifact rejection ##########################
 y,rejectNum = pre_processing(np.array(dat['PDR_baseline'].copy()),cfg)
+
+if cfg['mmFlag']:
+    f = open(os.path.join(str(saveFileLocs + 'data_original_norm.json')))
+    dat_norm = json.load(f)
+    f.close()
+    y0,rejectNum0 = pre_processing(np.array(dat_norm['PDR_baseline'].copy()),cfg)
+
+    rejectNum = rejectNum0
+
 mmName = list(dat.keys())
 
 rejectNum = np.r_[rejectNum,tmp_rejectNum]
