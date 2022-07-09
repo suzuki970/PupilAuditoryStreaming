@@ -472,9 +472,9 @@ __Figure 2A__ illustrates the grand-averaged baseline pupil changes across parti
 ($F$(`r round( anovaTabAll_e1$BP_table$anovaTab[2,]['df.col'],2)`,`r round( anovaTabAll_e1$BP_table$anovaTab[3,]['df.col'],2)`) = `r round( anovaTabAll_e1$BP_table$anovaTab[2,]['f.col'],3)`, 
 $p$ = `r round( anovaTabAll_e1$BP_table$anovaTab[2,]['p.col'],3)`, $\eta^2_p$ = `r round( anovaTabAll_e1$BP_table$anovaTab[2,]['p.eta^2'],3)`, $BF_{10}$ = `r  anovaTabAll_e1$BP_table$bf`). 
 The post-hoc multiple comparisons showed that the baseline pupil size in the >1-alt case was significantly larger than in the 0- and 1-alt cases 
-($t$(`r numOfsub-1`) = `r round(anovaTabAll_e1$BP_table$post[1,]$t,3)`, $p$ = `r round(anovaTabAll_e1$BP_table$post[1,]$p.value,3)`, 
+($t$(`r numOfsub-1`) = `r round(anovaTabAll_e1$BP_table$post[2,]$t,3)`, $p$ = `r round(anovaTabAll_e1$BP_table$post[2,]$p.value,3)`, 
 Cohen’s  $d_z$ = `r anovaTabAll_e1$BP_table$cohen_d0`, $BF_{10}$ =  `r anovaTabAll_e1$BP_table$bayesF_d0`; 
-$t$(`r numOfsub-1`) = `r round(anovaTabAll_e1$BP_table$post[2,]$t,3)`, $p$ =  `r round(anovaTabAll_e1$BP_table$post[2,]$p.value,3)`, 
+$t$(`r numOfsub-1`) = `r round(anovaTabAll_e1$BP_table$post[1,]$t,3)`, $p$ =  `r round(anovaTabAll_e1$BP_table$post[1,]$p.value,3)`, 
 Cohen’s  $d_z$ = `r anovaTabAll_e1$BP_table$cohen_d1`, $BF_{10}$ =  `r anovaTabAll_e1$BP_table$bayesF_d1`, respectively), 
 indicating that the baseline pupil size, prior to counting the number of alternations, was related to a subsequent number of perceptual transitions.
 The answered number of trials was significantly different among the 0-, 1-, and >1 cases as shown above. Such unbalanced trial numbers can cause biases in the statistical analysis and decreased statistical power. Thus, we performed an alternative analysis to avoid this potential statistical problem. We segregated the trials equally into five bins based on the rank order of baseline pupil size. Results are shown in Fig. 2B. The data were fitted by a simple regression model 

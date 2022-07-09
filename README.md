@@ -2,6 +2,11 @@
 Copyright 2021 Yuta Suzuki
 
 
+### Article information
+Suzuki, Y., Liao, H. & Furukawa, S. Temporal dynamics of auditory bistable perception correlated with fluctuation of baseline pupil size. Psychophysiology e14028 (2022) [doi:10.1111/psyp.14028].
+
+[doi:10.1111/psyp.14028]: https://doi:10.1111/psyp.14028
+
 ## Requirements
 Python
 - pre-peocessing (**'/[Python]PreProcessing/PupilAnalysisToolbox'**)

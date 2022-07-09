@@ -199,7 +199,7 @@ numOfSub_e2 = length(unique(data_res$sub))
 
 x = data_res[data_res$Responses == "unswitch",]$data_y
 y = data_res[data_res$Responses == "switch",]$data_y
-
+n = length(x)
 res = t.test(x,y,var.equal=T,paired=T)
 # cohen_d = cohen.d(x,y,paired=TRUE, within=TRUE)
 bf = ttestBF(x = x, y = y, paired=TRUE)
